@@ -1,0 +1,20 @@
+---
+frame:
+  world:
+    width: 100
+    height: 100
+    actors:
+      - id: food_1
+        type: Resource
+        position: {x: 10, y: 90}
+      - id: Zé
+        position: {x: 50, y: 50}
+        desire:
+          type: MoveTo
+          location: Maria
+          never_satisfied: yes
+      - id: Maria
+        position: {x: 75, y: 80}
+        desire:
+          type: Grab
+          resource: food_1
