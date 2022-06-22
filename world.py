@@ -79,7 +79,7 @@ class Location(yaml.YAMLObject):
       "type": self.type
     }
 
-class Desire():
+class Action():
   def __init__(self, actor: Actor) -> None:
     super().__init__()
     self.actor = actor
@@ -90,7 +90,7 @@ class Desire():
   def attach(self, actor: Actor):
     self.actor = actor
 
-class MoveTo(Desire):
+class MoveTo(Action):
   def __init__(self, actor: Actor, location: Location, never_satisfied=False) -> None:
     super().__init__(actor)
     self.location = location
@@ -114,7 +114,7 @@ class MoveTo(Desire):
       "never_satisfied": self.never_satisfied
     }
 
-class StayStill(Desire):
+class StayStill(Action):
   def __init__(self, actor: Actor) -> None:
     super().__init__(actor)
   
@@ -127,26 +127,26 @@ class StayStill(Desire):
       "actor": self.actor.id
     }
 
-class Grab(Desire):
+class Grab(Action):
   def __init__(self, actor: Actor, resource: Resource) -> None:
     super().__init__(actor)
     self.resource = resource
-    self.underlying_desire = MoveTo(self.actor, Location(resource))
+    self.underlying_action = MoveTo(self.actor, Location(resource))
   
   def run(self):
-    if self.underlying_desire.satisfied():
+    if self.underlying_action.satisfied():
       self.actor.inventory.append(self.resource)
       self.resource.mark_remove = True
-      self.actor.desire = MoveTo(self.actor, Location(Vector(100, 0)))
+      self.actor.action = MoveTo(self.actor, Location(Vector(100, 0)))
     else:
-      self.underlying_desire.run()
+      self.underlying_action.run()
   
   def satisfied(self):
     return False
   
   def attach(self, actor: Actor):
     super().attach(actor)
-    self.underlying_desire.attach(actor)
+    self.underlying_action.attach(actor)
   
   def to_dict(self) -> Dict[str, Any]:
     return {
@@ -161,7 +161,7 @@ class Actor(object):
     self.id = id
     self.position = position
     self.size = 10
-    self.desire: Desire = StayStill(self)
+    self.action: Action = StayStill(self)
     self.world: World = None
     self.inventory = []
     self.mark_remove = False
@@ -178,7 +178,7 @@ class Actor(object):
       "id": self.id,
       "position": self.position.to_dict(),
       "size": self.size,
-      "desire": self.desire.to_dict() if self.desire else None,
+      "action": self.action.to_dict() if self.action else None,
       "inventory": [r.to_dict() for r in self.inventory],
       "mark_remove": self.mark_remove,
     }
@@ -186,7 +186,7 @@ class Actor(object):
 class Resource(Actor):
   def __init__(self, id: str, position: Vector) -> None:
     super().__init__(id, position)
-    self.desire = StayStill(self)
+    self.action = StayStill(self)
   
   def to_dict(self) -> Dict[str, Any]:
     return {
@@ -194,7 +194,7 @@ class Resource(Actor):
       "id": self.id,
       "position": self.position.to_dict(),
       "size": self.size,
-      "desire": self.desire.to_dict(),
+      "action": self.action.to_dict(),
       "inventory": [r.to_dict() for r in self.inventory],
       "mark_remove": self.mark_remove,
     }
@@ -207,9 +207,9 @@ class World():
 
   def update(self):
     for actor in self.actors():
-      actor.desire.run()
-      if actor.desire.satisfied():
-        actor.desire = StayStill(actor)
+      actor.action.run()
+      if actor.action.satisfied():
+        actor.action = StayStill(actor)
 
     for actor in [a for a in self.actors() if a.mark_remove]:
       self.remove(actor)
@@ -264,8 +264,8 @@ def get_example_world() -> World:
   food_1 = Resource('food_1', Vector(75, 90))
   food_2 = Resource('food_2', Vector(10, 10))
 
-  maria.desire = Grab(maria, food_1)
-  ze.desire    = Grab(ze, food_1)
+  maria.action = Grab(maria, food_1)
+  ze.action    = Grab(ze, food_1)
 
   w = World()
   w.add(ze)

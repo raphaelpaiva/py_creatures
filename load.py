@@ -3,7 +3,7 @@ import sys
 import traceback
 from typing import Any, Callable, Dict
 import yaml
-from world import Actor, Desire, Frame, Grab, Location, MoveTo, Resource, StayStill, Vector, World
+from world import Actor, Action, Frame, Grab, Location, MoveTo, Resource, StayStill, Vector, World
 from plot import generate_frames, live_plot, static_plot
 
 DEFAULT_FILENAME = 'world.yaml'
@@ -22,7 +22,7 @@ class Loader(object):
     self.filename = filename
     self.loader_methods: Dict[str, Callable] = {f: getattr(Loader, f) for f in dir(Loader) if callable(getattr(Loader, f)) and "_load" in f}
     self.actor_by_id: Dict[str, Actor] = {}
-    self.desire_by_actor_id: Dict[str, Desire] = {}
+    self.action_by_actor_id: Dict[str, Action] = {}
 
   @staticmethod
   def _check_type(obj_dict: Dict, cls):
@@ -55,17 +55,17 @@ class Loader(object):
     for actor_dict in actors:
       world.add(self._load_actor(actor_dict))
     
-    self._attach_actor_desires()
+    self._attach_actor_actions()
     
     return world
 
-  def _attach_actor_desires(self):
-    for actor_id, desire_dict in self.desire_by_actor_id.items():
+  def _attach_actor_actions(self):
+    for actor_id, action_dict in self.action_by_actor_id.items():
       actor = self._lookup_actor(actor_id)
-      desire = self._load_desire(desire_dict) if desire_dict else None
-      if desire:
-        desire.attach(actor)
-        actor.desire = desire
+      action = self._load_action(action_dict) if action_dict else None
+      if action:
+        action.attach(actor)
+        actor.action = action
 
   def _load_actor(self, actor_dict: Dict) -> Actor:
     if actor_dict.get('type', None) == Resource.__name__:
@@ -75,12 +75,12 @@ class Loader(object):
     id = actor_dict.get("id")
     position_dict = actor_dict.get("position")
     size = actor_dict.get("size", 10)
-    desire_dict = actor_dict.get("desire", None)
+    action_dict = actor_dict.get("action", None)
     inventory = actor_dict.get("inventory", [])
 
     actor = Actor(id, self._load_vector(position_dict))
     self.actor_by_id[id] = actor
-    self.desire_by_actor_id[id] = desire_dict
+    self.action_by_actor_id[id] = action_dict
     actor.size = size
     # actor.inventory = Inventory.from_dict(inventory)
     return actor
@@ -91,7 +91,7 @@ class Loader(object):
     id = resource_dict.get("id")
     position_dict = resource_dict.get("position")
     size = resource_dict.get("size", 10)
-    desire_dict = resource_dict.get("desire", None)
+    action_dict = resource_dict.get("action", None)
     inventory = resource_dict.get("inventory", [])
 
     resource = Resource(id, self._load_vector(position_dict))
@@ -106,11 +106,11 @@ class Loader(object):
 
     return Vector(x, y)
 
-  def _load_desire(self, desire_dict) -> Desire:
-    type: str = desire_dict.get('type', None)
+  def _load_action(self, action_dict) -> Action:
+    type: str = action_dict.get('type', None)
 
     if not type:
-      raise ParseException(msg=f"Type '{type}' is not a subclass of {Desire.__name__}")
+      raise ParseException(msg=f"Type '{type}' is not a subclass of {Action.__name__}")
     
     loader_name = f"_load_{type.lower()}"
 
@@ -118,7 +118,7 @@ class Loader(object):
       raise ParseException(msg=f"No loader found for {type}. Tried '{loader_name}()'")
     else:
       loader_method = self.loader_methods[loader_name]
-      return loader_method(self, desire_dict)
+      return loader_method(self, action_dict)
   
   def _load_moveto(self, moveto_dict: Dict[str, Any]) -> MoveTo:
     self._check_type(moveto_dict, MoveTo)
@@ -128,7 +128,7 @@ class Loader(object):
     never_satisfied = moveto_dict.get("never_satisfied", False)
 
     if not location_dict:
-      raise ParseException(f"MoveTo desire needs a location")
+      raise ParseException(f"MoveTo action needs a location")
     
     location = None
     if isinstance(location_dict, str):
@@ -143,7 +143,7 @@ class Loader(object):
 
     resource_id = grab_dict.get("resource", None)
     if not resource_id:
-      raise ParseException(f"Grab desire needs a resource")
+      raise ParseException(f"Grab action needs a resource")
 
     return Grab(None, self._lookup_actor(resource_id))
 
