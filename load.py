@@ -3,7 +3,7 @@ import sys
 import traceback
 from typing import Any, Callable, Dict
 import yaml
-from world import Actor, Action, Frame, Grab, Location, MoveTo, Resource, StayStill, Vector, World
+from world import Entity, Action, Frame, Grab, Location, MoveTo, Resource, StayStill, Vector, World
 from plot import generate_frames, live_plot, static_plot
 
 DEFAULT_FILENAME = 'world.yaml'
@@ -21,8 +21,8 @@ class Loader(object):
   def __init__(self, filename) -> None:
     self.filename = filename
     self.loader_methods: Dict[str, Callable] = {f: getattr(Loader, f) for f in dir(Loader) if callable(getattr(Loader, f)) and "_load" in f}
-    self.actor_by_id: Dict[str, Actor] = {}
-    self.action_by_actor_id: Dict[str, Action] = {}
+    self.entity_by_id: Dict[str, Entity] = {}
+    self.action_by_entity_id: Dict[str, Action] = {}
 
   @staticmethod
   def _check_type(obj_dict: Dict, cls):
@@ -46,44 +46,44 @@ class Loader(object):
     
     width  = world_dict.get('width', 100)
     height = world_dict.get('height', 100)
-    actors = world_dict.get('actors', [])
+    entities = world_dict.get('entities', [])
 
     world = World()
     world.width  = width
     world.height = height
 
-    for actor_dict in actors:
-      world.add(self._load_actor(actor_dict))
+    for entity_dict in entities:
+      world.add(self._load_entity(entity_dict))
     
-    self._attach_actor_actions()
+    self._attach_entity_actions()
     
     return world
 
-  def _attach_actor_actions(self):
-    for actor_id, action_dict in self.action_by_actor_id.items():
-      actor = self._lookup_actor(actor_id)
+  def _attach_entity_actions(self):
+    for entity_id, action_dict in self.action_by_entity_id.items():
+      entity = self._lookup_entity(entity_id)
       action = self._load_action(action_dict) if action_dict else None
       if action:
-        action.attach(actor)
-        actor.action = action
+        action.attach(entity)
+        entity.action = action
 
-  def _load_actor(self, actor_dict: Dict) -> Actor:
-    if actor_dict.get('type', None) == Resource.__name__:
-      return self._load_resource(actor_dict)
-    self._check_type(actor_dict, Actor.__class__)
+  def _load_entity(self, entity_dict: Dict) -> Entity:
+    if entity_dict.get('type', None) == Resource.__name__:
+      return self._load_resource(entity_dict)
+    self._check_type(entity_dict, Entity.__class__)
 
-    id = actor_dict.get("id")
-    position_dict = actor_dict.get("position")
-    size = actor_dict.get("size", 10)
-    action_dict = actor_dict.get("action", None)
-    inventory = actor_dict.get("inventory", [])
+    id = entity_dict.get("id")
+    position_dict = entity_dict.get("position")
+    size = entity_dict.get("size", 10)
+    action_dict = entity_dict.get("action", None)
+    inventory = entity_dict.get("inventory", [])
 
-    actor = Actor(id, self._load_vector(position_dict))
-    self.actor_by_id[id] = actor
-    self.action_by_actor_id[id] = action_dict
-    actor.size = size
-    # actor.inventory = Inventory.from_dict(inventory)
-    return actor
+    entity = Entity(id, self._load_vector(position_dict))
+    self.entity_by_id[id] = entity
+    self.action_by_entity_id[id] = action_dict
+    entity.size = size
+    # entity.inventory = Inventory.from_dict(inventory)
+    return entity
 
   def _load_resource(self, resource_dict: Dict) -> Resource:
     self._check_type(resource_dict, Resource)
@@ -95,7 +95,7 @@ class Loader(object):
     inventory = resource_dict.get("inventory", [])
 
     resource = Resource(id, self._load_vector(position_dict))
-    self.actor_by_id[id] = resource
+    self.entity_by_id[id] = resource
     resource.size = size
     return resource
 
@@ -123,7 +123,7 @@ class Loader(object):
   def _load_moveto(self, moveto_dict: Dict[str, Any]) -> MoveTo:
     self._check_type(moveto_dict, MoveTo)
     
-    actor_dict      = moveto_dict.get("actor", None)
+    entity_dict      = moveto_dict.get("entity", None)
     location_dict   = moveto_dict.get("location", None)
     never_satisfied = moveto_dict.get("never_satisfied", False)
 
@@ -132,7 +132,7 @@ class Loader(object):
     
     location = None
     if isinstance(location_dict, str):
-      location = Location(self._lookup_actor(location_dict))
+      location = Location(self._lookup_entity(location_dict))
     elif isinstance(location_dict, dict):
       location = Location(self._load_vector(location_dict))
     
@@ -145,19 +145,19 @@ class Loader(object):
     if not resource_id:
       raise ParseException(f"Grab action needs a resource")
 
-    return Grab(None, self._lookup_actor(resource_id))
+    return Grab(None, self._lookup_entity(resource_id))
 
   def _load_staystill(self, staystill_dict) -> StayStill:
     self._check_type(staystill_dict, StayStill)
 
     return StayStill(None)
 
-  def _lookup_actor(self, actor_id: str):
-    actor = self.actor_by_id.get(actor_id, None)
-    if not actor:
-      raise ParseException(msg=f"Actor with id '{actor_id}' not found.")
+  def _lookup_entity(self, entity_id: str):
+    entity = self.entity_by_id.get(entity_id, None)
+    if not entity:
+      raise ParseException(msg=f"entity with id '{entity_id}' not found.")
     
-    return actor
+    return entity
 
   def load(self) -> Frame:
     content = self._load_yaml(self.filename)

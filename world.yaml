@@ -3,7 +3,7 @@ frame:
   world:
     width: 100
     height: 100
-    actors:
+    entities:
       - id: food_1
         type: Resource
         position: {x: 10, y: 90}

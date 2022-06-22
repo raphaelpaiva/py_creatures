@@ -3,7 +3,7 @@ import sys
 from typing import List
 from matplotlib.animation import FuncAnimation
 import yaml
-from people import World, Actor
+from people import World, Entity
 from glob import glob
 from matplotlib import pyplot as plt
 
@@ -46,8 +46,8 @@ def generate_frames(number_of_frames: int, world: World = None) -> List[Frame]:
   return frames
 
 def plot(frame: Frame):
-  for actor in frame.world.actors():
-    plt.plot(actor.position._x, actor.position._y, marker="o", markersize=10, markeredgecolor="black", markerfacecolor=color_by_id.get(actor.id, 'green'))
+  for entity in frame.world.entities():
+    plt.plot(entity.position._x, entity.position._y, marker="o", markersize=10, markeredgecolor="black", markerfacecolor=color_by_id.get(entity.id, 'green'))
 
 def main():
   param = ''
@@ -74,9 +74,9 @@ def live_plot(frames: List[Frame]):
     ax.set_xlim([0, 100])
     ax.set_ylim([0, 100])
     ax.grid()
-    for actor in frame.world.actors():
-      ax.plot(actor.position._x, actor.position._y, marker="o", markersize=10, markeredgecolor="black", markerfacecolor=color_by_id.get(actor.id, 'green'))
-      plt.annotate(actor.id, (actor.position._x + 2, actor.position._y))
+    for entity in frame.world.entities():
+      ax.plot(entity.position._x, entity.position._y, marker="o", markersize=10, markeredgecolor="black", markerfacecolor=color_by_id.get(entity.id, 'green'))
+      plt.annotate(entity.id, (entity.position._x + 2, entity.position._y))
 
   ani = FuncAnimation(fig, animate, frames=len(frames), interval=30)
   plt.show()
@@ -87,9 +87,9 @@ def static_plot(frames: List[Frame]):
   for frame in frames:
     plot(frame)
 
-    actors: List[Actor] = frames[-1].world.actors()
-    for actor in actors:
-      plt.annotate(actor.id, (actor.position._x + 2, actor.position._y))
+    entities: List[Entity] = frames[-1].world.entities()
+    for entity in entities:
+      plt.annotate(entity.id, (entity.position._x + 2, entity.position._y))
     plt.show()
 
 if __name__ == '__main__':

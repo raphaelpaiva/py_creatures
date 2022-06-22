@@ -65,7 +65,7 @@ class Vector(yaml.YAMLObject):
 class Location(yaml.YAMLObject):
   yaml_tag = "!Location"
 
-  def __init__(self, location: Any[Actor, Vector]) -> None:
+  def __init__(self, location: Any[Entity, Vector]) -> None:
     super().__init__()
     self.location = location
     self.type = location.__class__.__name__
@@ -80,43 +80,43 @@ class Location(yaml.YAMLObject):
     }
 
 class Action():
-  def __init__(self, actor: Actor) -> None:
+  def __init__(self, entity: Entity) -> None:
     super().__init__()
-    self.actor = actor
+    self.entity = entity
 
   def run(self): pass
   def satisfied(self): pass
   def to_dict(self): pass
-  def attach(self, actor: Actor):
-    self.actor = actor
+  def attach(self, entity: Entity):
+    self.entity = entity
 
 class MoveTo(Action):
-  def __init__(self, actor: Actor, location: Location, never_satisfied=False) -> None:
-    super().__init__(actor)
+  def __init__(self, entity: Entity, location: Location, never_satisfied=False) -> None:
+    super().__init__(entity)
     self.location = location
     self.never_satisfied = never_satisfied
   
   def run(self):
-    direction = Vector.from_points(self.actor.position, self.location.get()).unit()
-    self.actor.position += direction
+    direction = Vector.from_points(self.entity.position, self.location.get()).unit()
+    self.entity.position += direction
 
   def satisfied(self):
     if self.never_satisfied:
       return False
     else:
-      return self.actor.position == self.location.get()
+      return self.entity.position == self.location.get()
   
   def to_dict(self) -> Dict[str, Any]:
     return {
       "type": self.__class__.__name__,
-      "actor": self.actor.id,
+      "entity": self.entity.id,
       "location": self.location.to_dict(),
       "never_satisfied": self.never_satisfied
     }
 
 class StayStill(Action):
-  def __init__(self, actor: Actor) -> None:
-    super().__init__(actor)
+  def __init__(self, entity: Entity) -> None:
+    super().__init__(entity)
   
   def satisfied(self):
     return True
@@ -124,38 +124,38 @@ class StayStill(Action):
   def to_dict(self) -> Dict[str, Any]:
     return {
       "type": self.__class__.__name__,
-      "actor": self.actor.id
+      "entity": self.entity.id
     }
 
 class Grab(Action):
-  def __init__(self, actor: Actor, resource: Resource) -> None:
-    super().__init__(actor)
+  def __init__(self, entity: Entity, resource: Resource) -> None:
+    super().__init__(entity)
     self.resource = resource
-    self.underlying_action = MoveTo(self.actor, Location(resource))
+    self.underlying_action = MoveTo(self.entity, Location(resource))
   
   def run(self):
     if self.underlying_action.satisfied():
-      self.actor.inventory.append(self.resource)
+      self.entity.inventory.append(self.resource)
       self.resource.mark_remove = True
-      self.actor.action = MoveTo(self.actor, Location(Vector(100, 0)))
+      self.entity.action = MoveTo(self.entity, Location(Vector(100, 0)))
     else:
       self.underlying_action.run()
   
   def satisfied(self):
     return False
   
-  def attach(self, actor: Actor):
-    super().attach(actor)
-    self.underlying_action.attach(actor)
+  def attach(self, entity: Entity):
+    super().attach(entity)
+    self.underlying_action.attach(entity)
   
   def to_dict(self) -> Dict[str, Any]:
     return {
       "type": self.__class__.__name__,
-      "actor": self.actor.id,
+      "entity": self.entity.id,
       "resource": self.resource.id
     }
 
-class Actor(object):
+class Entity(object):
   def __init__(self, id: str, position: Vector) -> None:
     super().__init__()
     self.id = id
@@ -183,7 +183,7 @@ class Actor(object):
       "mark_remove": self.mark_remove,
     }
 
-class Resource(Actor):
+class Resource(Entity):
   def __init__(self, id: str, position: Vector) -> None:
     super().__init__(id, position)
     self.action = StayStill(self)
@@ -203,29 +203,29 @@ class World():
   def __init__(self) -> None:
     self.height = 100
     self.width  = 100
-    self.actors_map: Dict[str, Actor] = {}
+    self.entities_map: Dict[str, Entity] = {}
 
   def update(self):
-    for actor in self.actors():
-      actor.action.run()
-      if actor.action.satisfied():
-        actor.action = StayStill(actor)
+    for entity in self.entities():
+      entity.action.run()
+      if entity.action.satisfied():
+        entity.action = StayStill(entity)
 
-    for actor in [a for a in self.actors() if a.mark_remove]:
-      self.remove(actor)
+    for entity in [a for a in self.entities() if a.mark_remove]:
+      self.remove(entity)
   
-  def add(self, actor: Actor):
-    actor.world = self
-    self.actors_map[actor.id] = actor
+  def add(self, entity: Entity):
+    entity.world = self
+    self.entities_map[entity.id] = entity
 
-  def remove(self, actor: Actor):
-    self.actors_map.pop(actor.id)
+  def remove(self, entity: Entity):
+    self.entities_map.pop(entity.id)
 
-  def actors(self):
-    return list(self.actors_map.values())
+  def entities(self):
+    return list(self.entities_map.values())
 
   def __str__(self) -> str:
-    return f"World({self.height}, {self.width}, {len(self.actors())})"
+    return f"World({self.height}, {self.width}, {len(self.entities())})"
   
   def __repr__(self) -> str:
     return f"{self.__class__.__name__}()"
@@ -235,7 +235,7 @@ class World():
       "type": self.__class__.__name__,
       "width": self.width,
       "height": self.height,
-      "actors": [a.to_dict() for a in self.actors()],
+      "entities": [a.to_dict() for a in self.entities()],
     }
 
 class Frame(yaml.YAMLObject):
@@ -259,8 +259,8 @@ class Frame(yaml.YAMLObject):
     }
 
 def get_example_world() -> World:
-  ze     = Actor('Zé', Vector(90, 10))
-  maria  = Actor('Maria', Vector(40, 50))
+  ze     = Entity('Zé', Vector(90, 10))
+  maria  = Entity('Maria', Vector(40, 50))
   food_1 = Resource('food_1', Vector(75, 90))
   food_2 = Resource('food_2', Vector(10, 10))
 
