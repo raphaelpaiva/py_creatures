@@ -3,7 +3,7 @@ import sys
 import traceback
 from typing import Any, Callable, Dict
 import yaml
-from world import Entity, Action, Frame, Grab, Location, MoveTo, Resource, StayStill, Vector, World
+from world import Entity, Action, Frame, Grab, Location, MoveAround, MoveTo, Resource, StayStill, Vector, World
 from plot import generate_frames, live_plot, static_plot
 
 DEFAULT_FILENAME = 'world.yaml'
@@ -76,12 +76,15 @@ class Loader(object):
     position_dict = entity_dict.get("position")
     size = entity_dict.get("size", 10)
     action_dict = entity_dict.get("action", None)
+    properties_dict = entity_dict.get('properties', {})
     inventory = entity_dict.get("inventory", [])
 
-    entity = Entity(id, self._load_vector(position_dict))
+    position = self._load_vector(position_dict)
+    entity = Entity(id, position)
     self.entity_by_id[id] = entity
     self.action_by_entity_id[id] = action_dict
     entity.size = size
+    entity.properties = properties_dict
     # entity.inventory = Inventory.from_dict(inventory)
     return entity
 
@@ -100,6 +103,7 @@ class Loader(object):
     return resource
 
   def _load_vector(self, vector_dict: Dict[str, float]):
+    if not vector_dict: return None
     self._check_type(vector_dict, Vector.__class__)
     x = vector_dict['x']
     y = vector_dict['y']
@@ -138,6 +142,10 @@ class Loader(object):
     
     return MoveTo(None, location, never_satisfied)
   
+  def _load_movearound(self, move_dict) -> MoveAround:
+    self._check_type(move_dict, MoveAround)
+    return MoveAround(None)
+
   def _load_grab(self, grab_dict) -> Grab:
     self._check_type(grab_dict, Grab)
 

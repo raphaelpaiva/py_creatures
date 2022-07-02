@@ -47,7 +47,15 @@ def generate_frames(number_of_frames: int, world: World = None) -> List[Frame]:
 
 def plot(frame: Frame):
   for entity in frame.world.entities():
-    plt.plot(entity.position._x, entity.position._y, marker="o", markersize=10, markeredgecolor="black", markerfacecolor=color_by_id.get(entity.id, 'green'))
+    plt.plot(
+      entity.position._x,
+      entity.position._y,
+      marker="o",
+      markersize=10,
+      markeredgecolor="black",
+      markerfacecolor=entity.properties.get('color', 'green')
+    )
+    plt.annotate(entity.properties.get('name', entity.id), (entity.position._x + 2, entity.position._y))
 
 def main():
   param = ''
@@ -75,8 +83,15 @@ def live_plot(frames: List[Frame]):
     ax.set_ylim([0, 100])
     ax.grid()
     for entity in frame.world.entities():
-      ax.plot(entity.position._x, entity.position._y, marker="o", markersize=10, markeredgecolor="black", markerfacecolor=color_by_id.get(entity.id, 'green'))
-      plt.annotate(entity.id, (entity.position._x + 2, entity.position._y))
+      ax.plot(
+        entity.position._x,
+        entity.position._y,
+        marker="o",
+        markersize=10,
+        markeredgecolor="black",
+        markerfacecolor=entity.properties.get('color', 'green')
+      )
+      plt.annotate(entity.properties.get('name', entity.id), (entity.position._x + 2, entity.position._y))
 
   ani = FuncAnimation(fig, animate, frames=len(frames), interval=30)
   plt.show()

@@ -1,0 +1,17 @@
+---
+frame:
+  world:
+    width: 100
+    height: 100
+    entities:
+      - id: 001
+        position: {x: 75, y: 80}
+        properties:
+          name: Maria
+          color: red
+      - id: 002
+        properties:
+          color: black
+      - id: 003
+        properties:
+          color: blue

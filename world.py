@@ -2,12 +2,11 @@ from __future__ import annotations
 from collections import OrderedDict
 
 from math import sqrt, isclose
+import random
 import yaml
 from typing import Any, ClassVar, Dict, List
 
-class Vector(yaml.YAMLObject):
-  yaml_tag = "!Vector"
-
+class Vector(object):
   def __init__(self, x: float, y: float) -> None:
     super().__init__()
     self._x: float = x
@@ -62,9 +61,7 @@ class Vector(yaml.YAMLObject):
   def __str__(self) -> str:
     return f"Vec({self._x}, {self._y})"
 
-class Location(yaml.YAMLObject):
-  yaml_tag = "!Location"
-
+class Location(object):
   def __init__(self, location: Any[Entity, Vector]) -> None:
     super().__init__()
     self.location = location
@@ -78,6 +75,11 @@ class Location(yaml.YAMLObject):
       "location": self.location.to_dict(),
       "type": self.type
     }
+
+class Somewhere(Location):
+  def __init__(self) -> None:
+    location = Vector(random.random() * 100, random.random() * 100)
+    super().__init__(location)
 
 class Action():
   def __init__(self, entity: Entity) -> None:
@@ -127,6 +129,19 @@ class StayStill(Action):
       "entity": self.entity.id
     }
 
+class MoveAround(Action):
+  def __init__(self, entity: Entity) -> None:
+    super().__init__(entity)
+    self.current_movement = MoveTo(entity, Somewhere())
+  
+  def run(self):
+    if not self.current_movement.entity:
+      self.current_movement.entity = self.entity
+    if self.current_movement.satisfied():
+      self.current_movement = MoveTo(self.entity, Somewhere())
+    else:
+      self.current_movement.run()
+
 class Grab(Action):
   def __init__(self, entity: Entity, resource: Resource) -> None:
     super().__init__(entity)
@@ -159,12 +174,13 @@ class Entity(object):
   def __init__(self, id: str, position: Vector) -> None:
     super().__init__()
     self.id = id
-    self.position = position
+    self.position = position if position else Somewhere().get()
     self.size = 10
-    self.action: Action = StayStill(self)
+    self.action: Action = MoveAround(self)
     self.world: World = None
     self.inventory = []
     self.mark_remove = False
+    self.properties: Dict[str, str] = {}
 
   def __str__(self) -> str:
     return f"{self.__class__.__name__}(id={self.id}, position={self.position})"
