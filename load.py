@@ -110,7 +110,7 @@ class Loader(object):
 
     return Vector(x, y)
 
-  def _load_action(self, action_dict) -> Action:
+  def _load_action(self, action_dict: Dict[str, Any]) -> Action:
     type: str = action_dict.get('type', None)
 
     if not type:
@@ -126,8 +126,7 @@ class Loader(object):
   
   def _load_moveto(self, moveto_dict: Dict[str, Any]) -> MoveTo:
     self._check_type(moveto_dict, MoveTo)
-    
-    entity_dict      = moveto_dict.get("entity", None)
+
     location_dict   = moveto_dict.get("location", None)
     never_satisfied = moveto_dict.get("never_satisfied", False)
 
@@ -141,7 +140,17 @@ class Loader(object):
       location = Location(self._load_vector(location_dict))
     
     return MoveTo(None, location, never_satisfied)
-  
+
+  def _load_follow(self, moveto_dict: Dict[str, Any]) -> MoveTo:
+    location_id = moveto_dict.get("entity", None)
+
+    if not location_id or not isinstance(location_id, str):
+      raise ParseException(f"Follow action needs an entity id")
+    
+    location = Location(self._lookup_entity(location_id))
+    
+    return MoveTo(None, location, True)
+
   def _load_movearound(self, move_dict) -> MoveAround:
     self._check_type(move_dict, MoveAround)
     return MoveAround(None)
