@@ -1,6 +1,6 @@
 from copy import deepcopy
 import sys
-from typing import List
+from typing import Iterable, List
 from matplotlib.animation import FuncAnimation
 import yaml
 from people import World, Entity
@@ -73,14 +73,13 @@ def main():
   else:
     static_plot(frames)
 
-def live_plot(frames: List[Frame]):
+def live_plot(frames: Iterable[Frame]):
   fig, ax = plt.subplots()
 
-  def animate(frame_number: int):
-    frame = frames[frame_number]
+  def animate(frame: Frame):
     ax.clear()
-    ax.set_xlim([0, 100])
-    ax.set_ylim([0, 100])
+    ax.set_xlim([0, frame.world.width])
+    ax.set_ylim([0, frame.world.height])
     ax.grid()
     for entity in frame.world.entities():
       ax.plot(
@@ -93,7 +92,7 @@ def live_plot(frames: List[Frame]):
       )
       plt.annotate(entity.properties.get('name', entity.id), (entity.position._x + 2, entity.position._y))
 
-  ani = FuncAnimation(fig, animate, frames=len(frames), interval=30)
+  ani = FuncAnimation(fig, animate, frames=frames, interval=20)
   plt.show()
 
 

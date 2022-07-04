@@ -3,11 +3,11 @@ import sys
 import traceback
 from typing import Any, Callable, Dict
 import yaml
-from world import Entity, Action, Frame, Grab, Location, MoveAround, MoveTo, Resource, StayStill, Vector, World
+from world import Entity, Action, Frame, Grab, Location, MoveAround, MoveTo, Resource, StayStill, Vector, World, frame_generator
 from plot import generate_frames, live_plot, static_plot
 
 DEFAULT_FILENAME = 'world.yaml'
-DEFAULT_FRAME_NUMBER = 50
+DEFAULT_FRAME_NUMBER = 'infinite'
 
 class ParseException(Exception):
   def __init__(self, msg: str, *args: object) -> None:
@@ -48,9 +48,9 @@ class Loader(object):
     height = world_dict.get('height', 100)
     entities = world_dict.get('entities', [])
 
-    world = World()
-    world.width  = width
-    world.height = height
+    world = World(width, height)
+
+    self.world = world
 
     for entity_dict in entities:
       world.add(self._load_entity(entity_dict))
@@ -59,12 +59,12 @@ class Loader(object):
     
     return world
 
-  def _attach_entity_actions(self):
+  def _attach_entity_actions(self) -> None:
     for entity_id, action_dict in self.action_by_entity_id.items():
       entity = self._lookup_entity(entity_id)
       action = self._load_action(action_dict) if action_dict else None
       if action:
-        action.attach(entity)
+        action.entity = entity
         entity.action = action
 
   def _load_entity(self, entity_dict: Dict) -> Entity:
@@ -185,15 +185,17 @@ def main():
   
   try:
     frame = Loader(filename).load()
-    frames = generate_frames(frame_number, world=frame.world)
-    live_plot(frames)
+    if frame_number == DEFAULT_FRAME_NUMBER:
+      live_plot(frame_generator(frame))
+    else:
+      frames = generate_frames(frame_number, world=frame.world)
+      live_plot(frames)
   except ParseException as e:
     print(e)
     exit(1)
   except Exception as e:
     traceback.print_exc() #sys.exc_info()[2]
     exit(255)
-
 
 if __name__ == '__main__':
   main()

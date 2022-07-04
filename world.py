@@ -1,5 +1,6 @@
 from __future__ import annotations
 from collections import OrderedDict
+from copy import deepcopy
 
 from math import sqrt, isclose
 import random
@@ -14,15 +15,15 @@ class Vector(object):
   
   @classmethod
   def from_points(cls, origin: Vector, dest: Vector) -> Vector:
-    x = dest._x - origin._x
-    y = dest._y - origin._y
+    x = dest.x - origin.x
+    y = dest.y - origin.y
 
     return Vector(x, y)
   
   def to_dict(self) -> Dict[str, Any]:
     return {
-      "x": self._x,
-      "y": self._y
+      "x": self.x,
+      "y": self.y
     }
 
   def __add__(self, other: Vector) -> Vector:
@@ -38,28 +39,39 @@ class Vector(object):
     return self.mul(other)
 
   def mul(self, value: Any[float, int]) -> Vector:
-    return Vector(self._x * value, self._y * value)
+    return Vector(self.x * value, self.y * value)
 
   def div(self, value: Any[float, int]) -> Vector:
     return self * (1.0 / value)
 
   def add(self, vec: Vector) -> Vector:
-    return Vector(self._x + vec._x, self._y + vec._y)
+    return Vector(self.x + vec.x, self.y + vec.y)
 
   def sub(self, vec: Vector) -> Vector:
-    return Vector(self._x - vec.x, self._y - vec.y)
+    return Vector(self.x - vec.x, self.y - vec.y)
 
   def size(self) -> float:
-    return sqrt(self._x * self._x + self._y * self._y)
+    return sqrt(self.x * self.x + self.y * self.y)
 
   def unit(self) -> Vector:
     return self / self.size()
   
+  def scalar(self, mult: float) -> Vector:
+    return Vector(self.x * mult, self.y * mult)
+
+  @property
+  def x(self):
+    return self._x
+  
+  @property
+  def y(self):
+    return self._y
+
   def __eq__(self, __o: object) -> bool:
-    return isinstance(__o, Vector) and ( isclose(self._x, __o._x, rel_tol=1e-1) and isclose(self._y, __o._y, rel_tol=1e-1))
+    return isinstance(__o, Vector) and ( isclose(self.x, __o.x, rel_tol=1e-1) and isclose(self.y, __o.y, rel_tol=1e-1))
 
   def __str__(self) -> str:
-    return f"Vec({self._x}, {self._y})"
+    return f"Vec({self.x}, {self.y})"
 
 class Location(object):
   def __init__(self, location: Any[Entity, Vector]) -> None:
@@ -77,11 +89,11 @@ class Location(object):
     }
 
 class Somewhere(Location):
-  def __init__(self) -> None:
-    location = Vector(random.random() * 100, random.random() * 100)
+  def __init__(self, max_x: float = 100, max_y: float = 100) -> None:
+    location = Vector(random.random() * max_x, random.random() * max_y)
     super().__init__(location)
 
-class Action():
+class Action(object):
   def __init__(self, entity: Entity) -> None:
     super().__init__()
     self.entity = entity
@@ -89,8 +101,14 @@ class Action():
   def run(self): pass
   def satisfied(self): pass
   def to_dict(self): pass
-  def attach(self, entity: Entity):
-    self.entity = entity
+  
+  @property
+  def entity(self):
+    return self._entity
+  
+  @entity.setter
+  def entity(self, other: Entity):
+    self._entity = other
 
 class MoveTo(Action):
   def __init__(self, entity: Entity, location: Location, never_satisfied=False) -> None:
@@ -130,17 +148,28 @@ class StayStill(Action):
     }
 
 class MoveAround(Action):
-  def __init__(self, entity: Entity) -> None:
+  def __init__(self, entity: Entity, max_distance: float = 10.0) -> None:
     super().__init__(entity)
-    self.current_movement = MoveTo(entity, Somewhere())
-  
+    self.max_distance = max_distance
+    self.current_movement = MoveTo(self.entity, self._next_location())
+
   def run(self):
-    if not self.current_movement.entity:
-      self.current_movement.entity = self.entity
     if self.current_movement.satisfied():
-      self.current_movement = MoveTo(self.entity, Somewhere())
+      self.current_movement = MoveTo(self.entity, self._next_location())
     else:
       self.current_movement.run()
+  
+  def _next_location(self) -> Location:
+    somewhere = Somewhere().get()
+
+    direction = Vector.from_points(
+      self.entity.position,
+      somewhere
+    )
+
+    restricted_direction = self.entity.position + direction.unit().scalar(self.max_distance)
+      
+    return Location(restricted_direction)
 
 class Grab(Action):
   def __init__(self, entity: Entity, resource: Resource) -> None:
@@ -159,9 +188,10 @@ class Grab(Action):
   def satisfied(self):
     return False
   
+  @property
   def attach(self, entity: Entity):
-    super().attach(entity)
-    self.underlying_action.attach(entity)
+    super().entity = entity
+    self.underlying_action.entiry = entity
   
   def to_dict(self) -> Dict[str, Any]:
     return {
@@ -215,10 +245,10 @@ class Resource(Entity):
       "mark_remove": self.mark_remove,
     }
 
-class World():
-  def __init__(self) -> None:
-    self.height = 100
-    self.width  = 100
+class World(object):
+  def __init__(self, width: int = 100, height: int = 100) -> None:
+    self._height = width
+    self._width  = height
     self.entities_map: Dict[str, Entity] = {}
 
   def update(self):
@@ -240,6 +270,14 @@ class World():
   def entities(self):
     return list(self.entities_map.values())
 
+  @property
+  def width(self):
+    return self._width
+  
+  @property
+  def height(self):
+    return self._height
+
   def __str__(self) -> str:
     return f"World({self.height}, {self.width}, {len(self.entities())})"
   
@@ -254,8 +292,7 @@ class World():
       "entities": [a.to_dict() for a in self.entities()],
     }
 
-class Frame(yaml.YAMLObject):
-  yaml_tag = '!Frame'
+class Frame(object):
   _number = 0
   
   def __init__(self, world: World) -> None:
@@ -273,6 +310,13 @@ class Frame(yaml.YAMLObject):
       "number": self.number,
       "world": self.world.to_dict()
     }
+
+def frame_generator(keyframe: Frame):
+  next_frame = keyframe
+  while True:
+    yield next_frame
+    next_frame.world.update()
+    next_frame = Frame(deepcopy(next_frame.world))
 
 def get_example_world() -> World:
   ze     = Entity('Zé', Vector(90, 10))
