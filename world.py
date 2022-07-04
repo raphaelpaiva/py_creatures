@@ -1,11 +1,9 @@
 from __future__ import annotations
-from collections import OrderedDict
 from copy import deepcopy
 
 from math import sqrt, isclose
 import random
-import yaml
-from typing import Any, ClassVar, Dict, List
+from typing import Any, Dict, Iterable, List, Union
 
 class Vector(object):
   def __init__(self, x: float, y: float) -> None:
@@ -73,8 +71,25 @@ class Vector(object):
   def __str__(self) -> str:
     return f"Vec({self.x}, {self.y})"
 
+class Action(object):
+  def __init__(self, entity: Entity) -> None:
+    super().__init__()
+    self.entity = entity
+
+  def run(self): pass
+  def satisfied(self): pass
+  def to_dict(self): pass
+  
+  @property
+  def entity(self):
+    return self._entity
+  
+  @entity.setter
+  def entity(self, other: Entity):
+    self._entity = other
+
 class Location(object):
-  def __init__(self, location: Any[Entity, Vector]) -> None:
+  def __init__(self, location: Union[Entity, Vector]) -> None:
     super().__init__()
     self.location = location
     self.type = location.__class__.__name__
@@ -93,125 +108,14 @@ class Somewhere(Location):
     location = Vector(random.random() * max_x, random.random() * max_y)
     super().__init__(location)
 
-class Action(object):
-  def __init__(self, entity: Entity) -> None:
-    super().__init__()
-    self.entity = entity
-
-  def run(self): pass
-  def satisfied(self): pass
-  def to_dict(self): pass
-  
-  @property
-  def entity(self):
-    return self._entity
-  
-  @entity.setter
-  def entity(self, other: Entity):
-    self._entity = other
-
-class MoveTo(Action):
-  def __init__(self, entity: Entity, location: Location, never_satisfied=False) -> None:
-    super().__init__(entity)
-    self.location = location
-    self.never_satisfied = never_satisfied
-  
-  def run(self):
-    speed = self.entity.properties.get('speed', 1.0)
-    direction = Vector.from_points(self.entity.position, self.location.get()).unit()
-    velocity = direction.scalar(speed)
-    self.entity.position += velocity
-
-  def satisfied(self):
-    if self.never_satisfied:
-      return False
-    else:
-      return self.entity.position == self.location.get()
-  
-  def to_dict(self) -> Dict[str, Any]:
-    return {
-      "type": self.__class__.__name__,
-      "entity": self.entity.id,
-      "location": self.location.to_dict(),
-      "never_satisfied": self.never_satisfied
-    }
-
-class StayStill(Action):
-  def __init__(self, entity: Entity) -> None:
-    super().__init__(entity)
-  
-  def satisfied(self):
-    return True
-  
-  def to_dict(self) -> Dict[str, Any]:
-    return {
-      "type": self.__class__.__name__,
-      "entity": self.entity.id
-    }
-
-class MoveAround(Action):
-  def __init__(self, entity: Entity, max_distance: float = 10.0) -> None:
-    super().__init__(entity)
-    self.max_distance = max_distance
-    self.current_movement = MoveTo(self.entity, self._next_location())
-
-  def run(self):
-    if self.current_movement.satisfied():
-      self.current_movement = MoveTo(self.entity, self._next_location())
-    else:
-      self.current_movement.run()
-  
-  def _next_location(self) -> Location:
-    somewhere = Somewhere().get()
-
-    direction = Vector.from_points(
-      self.entity.position,
-      somewhere
-    )
-
-    restricted_direction = self.entity.position + direction.unit().scalar(self.max_distance)
-      
-    return Location(restricted_direction)
-
-class Grab(Action):
-  def __init__(self, entity: Entity, resource: Resource) -> None:
-    super().__init__(entity)
-    self.resource = resource
-    self.underlying_action = MoveTo(self.entity, Location(resource))
-  
-  def run(self):
-    if self.underlying_action.satisfied():
-      self.entity.inventory.append(self.resource)
-      self.resource.mark_remove = True
-      self.entity.action = MoveTo(self.entity, Location(Vector(100, 0)))
-    else:
-      self.underlying_action.run()
-  
-  def satisfied(self):
-    return False
-  
-  @property
-  def attach(self, entity: Entity):
-    super().entity = entity
-    self.underlying_action.entiry = entity
-  
-  def to_dict(self) -> Dict[str, Any]:
-    return {
-      "type": self.__class__.__name__,
-      "entity": self.entity.id,
-      "resource": self.resource.id
-    }
-
 class Entity(object):
   def __init__(self, id: str, position: Vector) -> None:
     super().__init__()
-    self.id = id
-    self.position = position if position else Somewhere().get()
-    self.size = 10
-    self.action: Action = MoveAround(self)
-    self.world: World = None
-    self.inventory = []
-    self.mark_remove = False
+    self.id: str = id
+    self.position: Vector = position if position else Somewhere().get()
+    self.size: float = 10
+    self.action: Action = None
+    self.mark_remove: bool = False
     self.properties: Dict[str, str] = {}
 
   def __str__(self) -> str:
@@ -227,14 +131,13 @@ class Entity(object):
       "position": self.position.to_dict(),
       "size": self.size,
       "action": self.action.to_dict() if self.action else None,
-      "inventory": [r.to_dict() for r in self.inventory],
       "mark_remove": self.mark_remove,
     }
 
 class Resource(Entity):
   def __init__(self, id: str, position: Vector) -> None:
     super().__init__(id, position)
-    self.action = StayStill(self)
+    self.action = None
   
   def to_dict(self) -> Dict[str, Any]:
     return {
@@ -257,19 +160,18 @@ class World(object):
     for entity in self.entities():
       entity.action.run()
       if entity.action.satisfied():
-        entity.action = StayStill(entity)
+        entity.action = None
 
     for entity in [a for a in self.entities() if a.mark_remove]:
       self.remove(entity)
   
-  def add(self, entity: Entity):
-    entity.world = self
+  def add(self, entity: Entity) -> None:
     self.entities_map[entity.id] = entity
 
-  def remove(self, entity: Entity):
+  def remove(self, entity: Entity) -> None:
     self.entities_map.pop(entity.id)
 
-  def entities(self):
+  def entities(self) -> List[Entity]:
     return list(self.entities_map.values())
 
   @property
@@ -313,7 +215,7 @@ class Frame(object):
       "world": self.world.to_dict()
     }
 
-def frame_generator(keyframe: Frame):
+def frame_generator(keyframe: Frame) -> Iterable[Frame]:
   next_frame = keyframe
   while True:
     yield next_frame
@@ -325,9 +227,6 @@ def get_example_world() -> World:
   maria  = Entity('Maria', Vector(40, 50))
   food_1 = Resource('food_1', Vector(75, 90))
   food_2 = Resource('food_2', Vector(10, 10))
-
-  maria.action = Grab(maria, food_1)
-  ze.action    = Grab(ze, food_1)
 
   w = World()
   w.add(ze)

@@ -3,8 +3,9 @@ import sys
 import traceback
 from typing import Any, Callable, Dict
 import yaml
-from world import Entity, Action, Frame, Grab, Location, MoveAround, MoveTo, Resource, StayStill, Vector, World, frame_generator
-from plot import generate_frames, live_plot, static_plot
+from action import Grab, MoveAround, MoveTo, StayStill
+from world import Entity, Action, Frame, Location, Resource, Vector, World, frame_generator
+from plot import generate_frames, live_plot
 
 DEFAULT_FILENAME = 'world.yaml'
 DEFAULT_FRAME_NUMBER = 'infinite'
@@ -75,9 +76,8 @@ class Loader(object):
     id = entity_dict.get("id")
     position_dict = entity_dict.get("position")
     size = entity_dict.get("size", 10)
-    action_dict = entity_dict.get("action", None)
+    action_dict = entity_dict.get("action", {'type': 'MoveAround'})
     properties_dict = entity_dict.get('properties', {})
-    inventory = entity_dict.get("inventory", [])
 
     position = self._load_vector(position_dict)
     entity = Entity(id, position)
