@@ -1,8 +1,10 @@
 from __future__ import annotations
+from abc import abstractmethod
 from copy import deepcopy
 
 from math import sqrt, isclose
 import random
+from types import NoneType
 from typing import Any, Dict, Iterable, List, Union
 
 class Vector(object):
@@ -76,8 +78,13 @@ class Action(object):
     super().__init__()
     self.entity = entity
 
-  def run(self): pass
+  @abstractmethod
+  def run(self) -> None: pass
+  
+  @abstractmethod
   def satisfied(self): pass
+  
+  @abstractmethod
   def to_dict(self): pass
   
   @property
@@ -91,15 +98,15 @@ class Action(object):
 class Location(object):
   def __init__(self, location: Union[Entity, Vector]) -> None:
     super().__init__()
-    self.location = location
+    self._location = location
     self.type = location.__class__.__name__
 
   def get(self) -> Vector:
-    return self.location if self.type == "Vector" else self.location.position
+    return self._location if self.type == "Vector" else self._location.position
   
   def to_dict(self) -> Dict[str, Any]:
     return {
-      "location": self.location.to_dict(),
+      "location": self._location.to_dict(),
       "type": self.type
     }
 
@@ -114,7 +121,7 @@ class Entity(object):
     self.id: str = id
     self.position: Vector = position if position else Somewhere().get()
     self.size: float = 10
-    self.action: Action = None
+    self.action: Action | NoneType = None
     self.mark_remove: bool = False
     self.properties: Dict[str, str] = {}
 

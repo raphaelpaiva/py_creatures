@@ -63,7 +63,7 @@ def main():
   if len(sys.argv) > 1:
     try:
       param = int(sys.argv[1])
-    except:
+    except Exception:
       param = sys.argv[1]
 
   frames = get_frames(param)
@@ -92,7 +92,7 @@ def live_plot(frames: Iterable[Frame]):
       )
       plt.annotate(entity.properties.get('name', entity.id), (entity.position._x + 2, entity.position._y))
 
-  ani = FuncAnimation(fig, animate, frames=frames, interval=20)
+  _ = FuncAnimation(fig, animate, frames=frames, interval=20)
   plt.show()
 
 

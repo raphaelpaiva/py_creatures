@@ -27,9 +27,9 @@ class Loader(object):
 
   @staticmethod
   def _check_type(obj_dict: Dict, cls):
-    type = obj_dict.get('type', cls.__name__)
-    if type != cls.__name__:
-      raise ParseException(f"Type '{type}' is not compatible with '{cls.__name__}'")
+    obj_type = obj_dict.get('type', cls.__name__)
+    if obj_type != cls.__name__:
+      raise ParseException(f"Type '{obj_type}' is not compatible with '{cls.__name__}'")
 
   def _load_frame(self, frame_dict: Dict):   
     number     = frame_dict.get('number', 0)
@@ -73,32 +73,29 @@ class Loader(object):
       return self._load_resource(entity_dict)
     self._check_type(entity_dict, Entity.__class__)
 
-    id = entity_dict.get("id")
+    entity_id = entity_dict.get("id")
     position_dict = entity_dict.get("position")
     size = entity_dict.get("size", 10)
     action_dict = entity_dict.get("action", {'type': 'MoveAround'})
     properties_dict = entity_dict.get('properties', {})
 
     position = self._load_vector(position_dict)
-    entity = Entity(id, position)
-    self.entity_by_id[id] = entity
-    self.action_by_entity_id[id] = action_dict
+    entity = Entity(entity_id, position)
+    self.entity_by_id[entity_id] = entity
+    self.action_by_entity_id[entity_id] = action_dict
     entity.size = size
     entity.properties = properties_dict
-    # entity.inventory = Inventory.from_dict(inventory)
     return entity
 
   def _load_resource(self, resource_dict: Dict) -> Resource:
     self._check_type(resource_dict, Resource)
 
-    id = resource_dict.get("id")
+    resouce_id = resource_dict.get("id")
     position_dict = resource_dict.get("position")
     size = resource_dict.get("size", 10)
-    action_dict = resource_dict.get("action", None)
-    inventory = resource_dict.get("inventory", [])
 
-    resource = Resource(id, self._load_vector(position_dict))
-    self.entity_by_id[id] = resource
+    resource = Resource(resouce_id, self._load_vector(position_dict))
+    self.entity_by_id[resouce_id] = resource
     resource.size = size
     return resource
 
@@ -111,15 +108,15 @@ class Loader(object):
     return Vector(x, y)
 
   def _load_action(self, action_dict: Dict[str, Any]) -> Action:
-    type: str = action_dict.get('type', None)
+    action_type: str = action_dict.get('type', None)
 
-    if not type:
-      raise ParseException(msg=f"Type '{type}' is not a subclass of {Action.__name__}")
+    if not action_type:
+      raise ParseException(msg=f"Type '{action_type}' is not a subclass of {Action.__name__}")
     
-    loader_name = f"_load_{type.lower()}"
+    loader_name = f"_load_{action_type.lower()}"
 
     if loader_name not in self.loader_methods:
-      raise ParseException(msg=f"No loader found for {type}. Tried '{loader_name}()'")
+      raise ParseException(msg=f"No loader found for {action_type}. Tried '{loader_name}()'")
     else:
       loader_method = self.loader_methods[loader_name]
       return loader_method(self, action_dict)
