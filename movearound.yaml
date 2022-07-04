@@ -9,6 +9,7 @@ frame:
         properties:
           name: Maria
           color: red
+          size: 5
       - id: 002
         properties:
           color: black

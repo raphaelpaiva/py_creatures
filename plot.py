@@ -86,7 +86,7 @@ def live_plot(frames: Iterable[Frame]):
         entity.position._x,
         entity.position._y,
         marker="o",
-        markersize=10,
+        markersize=entity.properties.get('size', 5),
         markeredgecolor="black",
         markerfacecolor=entity.properties.get('color', 'green')
       )
