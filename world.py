@@ -117,8 +117,10 @@ class MoveTo(Action):
     self.never_satisfied = never_satisfied
   
   def run(self):
+    speed = self.entity.properties.get('speed', 1.0)
     direction = Vector.from_points(self.entity.position, self.location.get()).unit()
-    self.entity.position += direction
+    velocity = direction.scalar(speed)
+    self.entity.position += velocity
 
   def satisfied(self):
     if self.never_satisfied:
