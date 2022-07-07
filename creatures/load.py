@@ -3,12 +3,9 @@ import sys
 import traceback
 from typing import Any, Callable, Dict
 import yaml
-from action import Grab, MoveAround, MoveTo, StayStill
-from world import Entity, Action, Frame, Location, Resource, Vector, World, frame_generator
+from creatures.action import Grab, MoveAround, MoveTo, StayStill
+from creatures.world import Entity, Action, Frame, Location, Resource, Vector, World, frame_generator
 from plot import generate_frames, live_plot
-
-DEFAULT_FILENAME = 'world.yaml'
-DEFAULT_FRAME_NUMBER = 'infinite'
 
 class ParseException(Exception):
   def __init__(self, msg: str, *args: object) -> None:
@@ -180,28 +177,3 @@ class Loader(object):
   def _load_yaml(self, filename: str) -> Dict[Any, Any]:
     with open(filename) as fd:
       return yaml.safe_load(fd)
-
-def main():
-  filename = DEFAULT_FILENAME
-  frame_number = DEFAULT_FRAME_NUMBER
-  if len(sys.argv) > 1:
-    filename = sys.argv[1]
-  if len(sys.argv) > 2:
-    frame_number = int(sys.argv[2])
-  
-  try:
-    frame = Loader(filename).load()
-    if frame_number == DEFAULT_FRAME_NUMBER:
-      live_plot(frame_generator(frame))
-    else:
-      frames = generate_frames(frame_number, world=frame.world)
-      live_plot(frames)
-  except ParseException as e:
-    print(e)
-    exit(1)
-  except Exception as e:
-    traceback.print_exc() #sys.exc_info()[2]
-    exit(255)
-
-if __name__ == '__main__':
-  main()

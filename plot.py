@@ -3,11 +3,11 @@ import sys
 from typing import Iterable, List
 from matplotlib.animation import FuncAnimation
 import yaml
-from people import World, Entity
+from creatures.world import World, Entity
 from glob import glob
 from matplotlib import pyplot as plt
 
-from world import Frame, get_example_world
+from creatures.world import Frame, get_example_world
 
 color_by_id = {
   'Zé': 'yellow',

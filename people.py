@@ -3,7 +3,7 @@ import sys
 import yaml
 from typing import List
 
-from world import Frame, World, Vector, Entity, get_example_world
+from creatures.world import Frame, get_example_world
 
 def main():
   w = get_example_world()

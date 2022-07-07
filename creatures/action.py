@@ -1,5 +1,5 @@
 from typing import Any, Dict
-from world import Action, Entity, Location, Resource, Somewhere, Vector
+from .world import Action, Entity, Location, Resource, Somewhere, Vector
 
 class MoveTo(Action):
   def __init__(self, entity: Entity, location: Location, never_satisfied=False) -> None:
@@ -68,6 +68,13 @@ class MoveAround(Action):
     restricted_direction = self.entity.position + direction.unit().scalar(self.max_distance)
       
     return Location(restricted_direction)
+  
+  def to_dict(self):
+    return {
+      'type': 'MoveAround',
+      'current_movement': self.current_movement.to_dict() if self.current_movement else None
+    }
+
 
 class Grab(Action):
   def __init__(self, entity: Entity, resource: Resource) -> None:
