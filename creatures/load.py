@@ -1,11 +1,7 @@
-import json
-import sys
-import traceback
 from typing import Any, Callable, Dict
 import yaml
 from creatures.action import Grab, MoveAround, MoveTo, StayStill
-from creatures.world import Entity, Action, Frame, Location, Resource, Vector, World, frame_generator
-from plot import generate_frames, live_plot
+from creatures.world import Entity, Action, Frame, Location, Resource, Vector, World
 
 class ParseException(Exception):
   def __init__(self, msg: str, *args: object) -> None:
@@ -40,7 +36,7 @@ class Loader(object):
     return frame
   
   def _load_world(self, world_dict: Dict[str, Any]) -> World:
-    self._check_type(world_dict, World.__class__)
+    self._check_type(world_dict, World)
     
     width  = world_dict.get('width', 100)
     height = world_dict.get('height', 100)
@@ -68,7 +64,7 @@ class Loader(object):
   def _load_entity(self, entity_dict: Dict) -> Entity:
     if entity_dict.get('type', None) == Resource.__name__:
       return self._load_resource(entity_dict)
-    self._check_type(entity_dict, Entity.__class__)
+    self._check_type(entity_dict, Entity)
 
     entity_id = entity_dict.get("id")
     position_dict = entity_dict.get("position")
@@ -98,7 +94,7 @@ class Loader(object):
 
   def _load_vector(self, vector_dict: Dict[str, float]):
     if not vector_dict: return None
-    self._check_type(vector_dict, Vector.__class__)
+    self._check_type(vector_dict, Vector)
     x = vector_dict['x']
     y = vector_dict['y']
 
@@ -131,7 +127,10 @@ class Loader(object):
     if isinstance(location_dict, str):
       location = Location(self._lookup_entity(location_dict))
     elif isinstance(location_dict, dict):
-      location = Location(self._load_vector(location_dict))
+      if location_dict.get('type', '') == Entity.__name__:
+        location = Location(self._lookup_entity(location_dict.get('location')))
+      else:
+        location = Location(self._load_vector(location_dict))
     
     return MoveTo(None, location, never_satisfied)
 
