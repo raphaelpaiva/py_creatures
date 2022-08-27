@@ -210,8 +210,9 @@ class App(tkinter.Tk):
   
   def save(self):
     filename = filedialog.asksaveasfilename()
-    with open(filename, 'w') as fd:
-      yaml.dump(self.current_frame.to_dict(), stream=fd, allow_unicode=True, encoding=('utf-8'), sort_keys=False)
+    if filename:
+      with open(filename, 'w') as fd:
+        yaml.dump(self.current_frame.to_dict(), stream=fd, allow_unicode=True, encoding=('utf-8'), sort_keys=False)
   
   def open(self):
     try:
