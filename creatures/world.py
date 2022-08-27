@@ -106,8 +106,8 @@ class Location(object):
   
   def to_dict(self) -> Dict[str, Any]:
     return {
-      "location": self._location.to_dict(),
-      "type": self.type
+      "type": self.type,
+      "location": self._location.to_dict() if self.type == "Vector" else self._location.id
     }
 
 class Somewhere(Location):
@@ -121,9 +121,19 @@ class Entity(object):
     self.id: str = id
     self.position: Vector = position if position else Somewhere().get()
     self.size: float = 10
-    self.action: Action | NoneType = None
+    self._action: Action | NoneType = None
     self.mark_remove: bool = False
     self.properties: Dict[str, str] = {}
+
+  @property
+  def action(self) -> Action:
+    return self._action
+  
+  @action.setter
+  def action(self, action: Action | NoneType):
+    self._action = action
+    if self.action:
+      self.action.entity = self
 
   def __str__(self) -> str:
     return f"{self.__class__.__name__}(id={self.id}, position={self.position})"
@@ -139,6 +149,7 @@ class Entity(object):
       "size": self.size,
       "action": self.action.to_dict() if self.action else None,
       "mark_remove": self.mark_remove,
+      "properties": self.properties
     }
 
 class Resource(Entity):
@@ -165,9 +176,10 @@ class World(object):
 
   def update(self):
     for entity in self.entities():
-      entity.action.run()
-      if entity.action.satisfied():
-        entity.action = None
+      if entity.action:
+        entity.action.run()
+        if entity.action.satisfied():
+          entity.action = None
 
     for entity in [a for a in self.entities() if a.mark_remove]:
       self.remove(entity)
@@ -217,9 +229,11 @@ class Frame(object):
 
   def to_dict(self) -> Dict[str, Any]:
     return {
-      "type": self.__class__.__name__,
-      "number": self.number,
-      "world": self.world.to_dict()
+      "frame": {
+        "type": self.__class__.__name__,
+        "number": self.number,
+        "world": self.world.to_dict()
+      }
     }
 
 def frame_generator(keyframe: Frame) -> Iterable[Frame]:
