@@ -27,6 +27,16 @@ class MoveTo(Action):
       "never_satisfied": self.never_satisfied
     }
 
+class MoveRelative(MoveTo):
+  def __init__(self, entity: Entity, location: Vector, never_satisfied=False) -> None:
+    super().__init__(entity, location, never_satisfied)
+  
+  def run(self):
+    self.entity.position += self.location
+  
+  def satisfied(self):
+    return not self.never_satisfied
+
 class StayStill(Action):
   def __init__(self, entity: Entity) -> None:
     super().__init__(entity)
