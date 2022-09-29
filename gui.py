@@ -8,8 +8,7 @@ import tkinter.ttk as ttk
 import traceback
 from turtle import update
 from types import NoneType
-from typing import Any, Dict
-import uuid
+from typing import Any, Callable, Dict, List
 import sv_ttk
 
 import matplotlib
@@ -59,7 +58,7 @@ class App(tkinter.Tk):
 
     frames = self._load_frame()
     self._create_menu()
-    self._create_control_panel()
+    self.control_panel = ControlPanel(self)
 
     self._create_plot_frame(frames)
 
@@ -80,42 +79,6 @@ class App(tkinter.Tk):
         self.anim = FuncAnimation(self.fig, self._animate, frames=frames, interval=20)
       else:
         self._animate()
-
-  def _create_control_panel(self):
-      self.control_panel_frame = ttk.Frame(self)
-      self.control_panel_frame.pack(side=tk.RIGHT)
-      
-      current_frame_label = ttk.Label(self.control_panel_frame, text='Current frame: ')
-      current_frame_label.grid(row=0, column=0)
-      self.current_frame_value = tkinter.StringVar(name='current_frame_value', value=self.current_frame.number)
-      self.msg = ttk.Label(self.control_panel_frame, textvariable=self.current_frame_value)
-      self.msg.grid(row=0, column=1, sticky=tk.N)
-
-      self.actor_name_value = tkinter.StringVar(name='actor_name_value', value=self.actor.properties.get('name', self.actor.id))
-      ttk.Label(self.control_panel_frame, text='Actor Name: ').grid(row=1, column=0)
-      ttk.Label(self.control_panel_frame, textvariable=self.actor_name_value).grid(row=1, column=1)
-
-      self.actor_position_value = tkinter.StringVar(name='actor_position_value', value=self.actor.position)
-      ttk.Label(self.control_panel_frame, text='Actor Position: ').grid(row=2, column=0)
-      ttk.Label(self.control_panel_frame, textvariable=self.actor_position_value).grid(row=2, column=1)
-      
-
-      if self.animated:
-        self.pause_button_label = tk.StringVar(name='pause_button_label', value=PAUSE_TEXT)
-        self.pause_button = ttk.Button(self.control_panel_frame, textvariable=self.pause_button_label, command=self.toggle_pause)
-        self.pause_button.grid(row=3, column=0, sticky=tk.N)
-      else:
-        btn_frame = ttk.Frame(self.control_panel_frame)
-        for value in ACTIONS.values():
-          btn = ttk.Button(btn_frame, text=value['label'], command=lambda a=value['action']: self.action(a))
-          btn.pack(side=tk.LEFT)
-        
-        step_btn = ttk.Button(btn_frame, text='Step', command=self.step)
-        step_btn.pack()
-      
-      btn_frame.grid(row=3, column=0)
-
-      #self._create_tree_view()
 
   def _animate(self, frame: Frame | NoneType = None):
     if frame:
@@ -192,12 +155,15 @@ class App(tkinter.Tk):
 
   def action(self, action: Action):
     self.actor.action = action
-    print(f"Setting action {action.to_dict()}")
+    self.control_panel.update()
   
   def step(self):
+    action = self.actor.action
     next_frame = Frame(deepcopy(self.current_frame.world))
     next_frame.world.update()
     self._animate(next_frame)
+    self.actor.action = action
+    self.control_panel.update()
 
   def toggle_pause(self, *args, **kwargs):
     if self.paused:
@@ -231,19 +197,16 @@ class App(tkinter.Tk):
   
   @property
   def actor(self) -> Entity:
-    return self.current_frame.world.entities_map['001']
+    return self.current_frame.world.entities_map['agent']
   
+  @property
+  def target(self) -> Entity:
+    return self.current_frame.world.entities_map['target']
+
   @current_frame.setter
   def current_frame(self, new_frame: Frame):
     self._current_frame = new_frame
-    self.current_frame_value.set(self.current_frame.number)
-    self.actor_position_value.set(str(self.actor.position))
-    self.actor_name_value.set(str(self.actor.properties.get('name', self.actor.id)))
-    # self.tree.set('frame_number', 0, self.current_frame.number)
-    # for entity in self.current_frame.world.entities():
-    #   iid = f"entity_{entity.id}"
-    #   self.tree.set(f"{iid}_location", 0, f"<{entity.position.x:.2f}, {entity.position.y:.2f}>")
-    #   self._update_tree_dict(f"{iid}_action", entity.action.to_dict())
+    self.control_panel.update()
 
   def _create_menu(self):
     menubar = tk.Menu(self)
@@ -255,6 +218,72 @@ class App(tkinter.Tk):
     menubar.add_cascade(label="File", menu=filemenu)
 
     self.config(menu=menubar)
+
+class ControlPanel(tk.Frame):
+  def __init__(self, master: App):
+    super().__init__(master)
+    self.master = master
+    self.pack(side=tk.RIGHT)
+    self.rows: List[LabeledValue] = []
+    self._create_control_panel()
+  
+  @property
+  def next_row_num(self) -> int:
+    return len(self.rows)
+  
+  def add_row(self, label: str, update_fn: Callable, initial_value: str = None):
+    if not initial_value:
+      initial_value = update_fn()
+    row = LabeledValue(self, label, initial_value, self.next_row_num, update_fn)
+    self.rows.append(row)
+  
+  def update(self) -> None:
+    for row in self.rows:
+      row.update()
+    super().update()
+
+  
+  def _create_control_panel(self):
+    self.add_row('Current Frame:', lambda: self.master.current_frame.number)
+    self.add_row('Actor Name:', lambda: self.master.actor.properties.get('name', self.master.actor.id))
+    self.add_row('Actor position:', lambda: self.master.actor.position)
+    self.add_row('Actor current Action:', lambda: str(self.master.actor.action.to_dict() if self.master.actor.action else None))
+    self.add_row('Actor-Target Distance:', lambda: str(self.master.actor.position.sub(self.master.target.position).size()))
+
+    if self.master.animated:
+      self.pause_button_label = tk.StringVar(name='pause_button_label', value=PAUSE_TEXT)
+      self.pause_button = ttk.Button(self.control_panel_frame, textvariable=self.pause_button_label, command=self.toggle_pause)
+      self.pause_button.grid(row=self.next_row_num, column=0, sticky=tk.N)
+    else:
+      btn_frame = ttk.Frame(self)
+      for value in ACTIONS.values():
+        btn = ttk.Button(btn_frame, text=value['label'], command=lambda a=value['action']: self.master.action(a))
+        btn.pack(side=tk.LEFT)
+      
+      step_btn = ttk.Button(btn_frame, text='Step', command=self.master.step)
+      step_btn.pack()
+      
+      btn_frame.grid(row=self.next_row_num, column=0)
+
+class LabeledValue(object):
+  def __init__(self, master: ControlPanel, label: str, initial_value: str, row: int, update_fn: Callable = None) -> None:
+    self.master    = master
+    self.label     = label
+    self.value     = initial_value
+    self.row       = row
+    self.update_fn = update_fn
+    
+    self.tk_label  = ttk.Label(self.master, text=self.label)
+    
+    self.tk_var    = tkinter.StringVar(name=f"{self.label}_var", value=self.value)
+    self.msg       = ttk.Label(self.master, textvariable=self.tk_var)
+    
+    self.tk_label.grid(row=self.row, column=0, sticky=tk.W)
+    self.msg.grid(row=row, column=1, sticky=tk.E)
+  
+  def update(self):
+    if self.update_fn:
+      self.tk_var.set(self.update_fn())
 
 if __name__ == '__main__':
   app = App()
