@@ -28,19 +28,23 @@ PLAY_TEXT  = '▶️'
 ACTIONS = {
   'move_up': {
     'action': MoveRelative(None, Vector(0, 10)),
-    'label': '⬆'
+    'label': '⬆',
+    'position': (0, 1)
   },
   'move_down':  {
     'action': MoveRelative(None, Vector(0, -10)),
-    'label': '⬇'
+    'label': '⬇',
+    'position': (2, 1)
   },
   'move_left':  {
     'action': MoveRelative(None, Vector(-10, 0)),
-    'label': '⬅'
+    'label': '⬅',
+    'position': (1, 0)
   },
   'move_right': {
     'action': MoveRelative(None, Vector(10, 0)),
-    'label': '➡'
+    'label': '➡',
+    'position': (1, 2)
   },
 }
 
@@ -98,60 +102,6 @@ class App(tkinter.Tk):
       )
       plt.annotate(entity.properties.get('name', entity.id), (entity.position._x + 2, entity.position._y))
     self.chart.draw()
-  
-  def _create_tree_view(self):
-    if not self.tree_frame:
-      self.tree_frame = ttk.Frame(self.control_panel_frame, padding="3")
-      self.tree_frame.grid(row=0, column=0, sticky=tk.NSEW)
-    
-    self.tree = ttk.Treeview(self.tree_frame, columns='Values')
-    self.tree.column('Values', width=100, anchor='center')
-    self.tree.heading('Values', text='Values')
-
-    self.tree.insert('', 'end', 'frame', text='Frame')
-    self.tree.insert('frame', 'end', 'frame_number', text='number', values=self.current_frame.number)
-    
-    self.tree.insert('frame', 'end', 'world', text='World')
-    self.tree.insert('world', 'end', 'world_width', text='width', values=self.current_frame.world.width)
-    self.tree.insert('world', 'end', 'world_height', text='height', values=self.current_frame.world.height)
-    self.tree.insert('world', 'end', 'world_entities', text='entities[]')
-
-    for entity in self.current_frame.world.entities():
-      iid = 'entity_' + entity.id
-      title = entity.properties.get('name', entity.id)
-      
-      self.tree.insert('world_entities', 'end', iid, text=title)
-      self.tree.insert(iid, 'end', f"{iid}_id", text='id', values=entity.id)
-      self.tree.insert(iid, 'end', f"{iid}_location", text='location', values=entity.position)
-      
-      self.tree.insert(iid, 'end', f"{iid}_action", text='action')
-      self._insert_tree_dict(f"{iid}_action", entity.action.to_dict())
-
-    self.tree.item("frame", open=True)
-    self.tree.item("world", open=True)
-    self.tree.item("world_entities", open=True)
-    #self.json_tree(self.tree, '', self.current_frame)
-    
-    
-    self.tree.pack(fill=tk.BOTH, expand=1)
-
-  def _insert_tree_dict(self, parent_iid: str, data: Dict[str, Any]):
-    for key, value in data.items():
-      iid = f"{parent_iid}_{key}"
-      if isinstance(value, dict):
-        self.tree.insert(parent_iid, 'end', iid, text=key)
-        self._insert_tree_dict(iid, value)
-      else:
-        self.tree.insert(parent_iid, 'end', iid, text=key, values=value if value is not None else 'None')
-
-  def _update_tree_dict(self, parent_iid: str, data: Dict[str, Any]):
-    for key, value in data.items():
-      iid = f"{parent_iid}_{key}"
-      if isinstance(value, dict):
-        self._update_tree_dict(iid, value)
-      else:
-        if value:
-          self.tree.set(iid, 0, value)
 
   def action(self, action: Action):
     self.actor.action = action
@@ -170,7 +120,7 @@ class App(tkinter.Tk):
       self.anim.resume()
     else:
       self.anim.pause()
-    
+
     self.paused = not self.paused
     self.pause_button_label.set(PLAY_TEXT if self.paused else PAUSE_TEXT)
   
@@ -258,10 +208,11 @@ class ControlPanel(tk.Frame):
       btn_frame = ttk.Frame(self)
       for value in ACTIONS.values():
         btn = ttk.Button(btn_frame, text=value['label'], command=lambda a=value['action']: self.master.action(a))
-        btn.pack(side=tk.LEFT)
+        row, column = value['position']
+        btn.grid(row=row, column=column)
       
       step_btn = ttk.Button(btn_frame, text='Step', command=self.master.step)
-      step_btn.pack()
+      step_btn.grid(row=1, column=3)
       
       btn_frame.grid(row=self.next_row_num, column=0)
 
