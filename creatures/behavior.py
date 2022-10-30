@@ -1,7 +1,7 @@
 from typing import Any, Dict
-from .world import Action, Entity, Location, Resource, Somewhere, Vector
+from .world import Behavior, Entity, Location, Resource, Somewhere, Vector
 
-class MoveTo(Action):
+class MoveTo(Behavior):
   def __init__(self, entity: Entity, location: Location, never_satisfied=False) -> None:
     super().__init__(entity)
     self.location = location
@@ -21,7 +21,7 @@ class MoveTo(Action):
   
   def to_dict(self) -> Dict[str, Any]:
     return {
-      "type": self.__class__.__name__,
+      "type": self.type,
       "entity": self.entity.id,
       "location": self.location.to_dict(),
       "never_satisfied": self.never_satisfied
@@ -37,7 +37,7 @@ class MoveRelative(MoveTo):
   def satisfied(self):
     return not self.never_satisfied
 
-class StayStill(Action):
+class StayStill(Behavior):
   def __init__(self, entity: Entity) -> None:
     super().__init__(entity)
   
@@ -46,11 +46,11 @@ class StayStill(Action):
   
   def to_dict(self) -> Dict[str, Any]:
     return {
-      "type": self.__class__.__name__,
+      "type": self.type,
       "entity": self.entity.id
     }
 
-class MoveAround(Action):
+class Wander(Behavior):
   def __init__(self, entity: Entity, max_distance: float = 10.0) -> None:
     super().__init__(entity)
     self.max_distance = max_distance
@@ -81,24 +81,24 @@ class MoveAround(Action):
   
   def to_dict(self):
     return {
-      'type': 'MoveAround',
+      'type': self.type,
       'current_movement': self.current_movement.to_dict() if self.current_movement else None
     }
 
 
-class Grab(Action):
+class Grab(Behavior):
   def __init__(self, entity: Entity, resource: Resource) -> None:
     super().__init__(entity)
     self.resource = resource
-    self.underlying_action = MoveTo(self.entity, Location(resource))
+    self.underlying_behavior = MoveTo(self.entity, Location(resource))
   
   def run(self):
-    if self.underlying_action.satisfied():
+    if self.underlying_behavior.satisfied():
       self.entity.inventory.append(self.resource)
       self.resource.mark_remove = True
-      self.entity.action = MoveTo(self.entity, Location(Vector(100, 0)))
+      self.entity.behavior = MoveTo(self.entity, Location(Vector(100, 0)))
     else:
-      self.underlying_action.run()
+      self.underlying_behavior.run()
   
   def satisfied(self):
     return False
@@ -110,11 +110,11 @@ class Grab(Action):
   @entity.setter
   def entity(self, entity: Entity) -> Entity:
     super().entity = entity
-    self.underlying_action.entity = entity
+    self.underlying_behavior.entity = entity
   
   def to_dict(self) -> Dict[str, Any]:
     return {
-      "type": self.__class__.__name__,
+      "type": self.type,
       "entity": self.entity.id,
       "resource": self.resource.id
     }

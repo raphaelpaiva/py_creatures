@@ -71,12 +71,16 @@ class Vector(object):
     return isinstance(__o, Vector) and ( isclose(self.x, __o.x, rel_tol=1e-1) and isclose(self.y, __o.y, rel_tol=1e-1))
 
   def __str__(self) -> str:
-    return f"Vec({self.x}, {self.y})"
+    return f"Vec({self.x:.2f}, {self.y:.2f})"
 
-class Action(object):
-  def __init__(self, entity: Entity) -> None:
+class Behavior(object):
+  def __init__(self, entity: Entity=None) -> None:
     super().__init__()
     self.entity = entity
+
+  @property
+  def type(self) -> str:
+    return self.__class__.__name__
 
   @abstractmethod
   def run(self) -> None: pass
@@ -94,6 +98,9 @@ class Action(object):
   @entity.setter
   def entity(self, other: Entity):
     self._entity = other
+
+  def __str__(self) -> str:
+    return self.type
 
 class Location(object):
   def __init__(self, location: Union[Entity, Vector]) -> None:
@@ -121,19 +128,22 @@ class Entity(object):
     self.id: str = id
     self.position: Vector = position if position else Somewhere().get()
     self.size: float = 10
-    self._action: Action | NoneType = None
+    self._behavior: Behavior | NoneType = None
     self.mark_remove: bool = False
     self.properties: Dict[str, str] = {}
+  
+  def behavior(self) -> Behavior:
+    self.behavior.update()
 
   @property
-  def action(self) -> Action:
-    return self._action
+  def behavior(self) -> Behavior:
+    return self._behavior
   
-  @action.setter
-  def action(self, action: Action | NoneType):
-    self._action = action
-    if self.action:
-      self.action.entity = self
+  @behavior.setter
+  def behavior(self, behavior: Behavior | NoneType):
+    self._behavior = behavior
+    if self.behavior:
+      self.behavior.entity = self
 
   def __str__(self) -> str:
     return f"{self.__class__.__name__}(id={self.id}, position={self.position})"
@@ -147,7 +157,7 @@ class Entity(object):
       "id": self.id,
       "position": self.position.to_dict(),
       "size": self.size,
-      "action": self.action.to_dict() if self.action else None,
+      "behavior": self.behavior.to_dict() if self.behavior else None,
       "mark_remove": self.mark_remove,
       "properties": self.properties
     }
@@ -155,7 +165,7 @@ class Entity(object):
 class Resource(Entity):
   def __init__(self, id: str, position: Vector) -> None:
     super().__init__(id, position)
-    self.action = None
+    self.behavior = None
   
   def to_dict(self) -> Dict[str, Any]:
     return {
@@ -163,7 +173,7 @@ class Resource(Entity):
       "id": self.id,
       "position": self.position.to_dict(),
       "size": self.size,
-      "action": self.action.to_dict(),
+      "behavior": self.behavior.to_dict(),
       "inventory": [r.to_dict() for r in self.inventory],
       "mark_remove": self.mark_remove,
     }
@@ -176,10 +186,7 @@ class World(object):
 
   def update(self):
     for entity in self.entities():
-      if entity.action:
-        entity.action.run()
-        if entity.action.satisfied():
-          entity.action = None
+      entity.behavior.run()
 
     for entity in [a for a in self.entities() if a.mark_remove]:
       self.remove(entity)

@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict
 import yaml
-from creatures.action import Grab, MoveAround, MoveTo, StayStill
-from creatures.world import Entity, Action, Frame, Location, Resource, Vector, World
+from .behavior import Grab, Wander, MoveTo, StayStill
+from .world import Entity, Behavior, Frame, Location, Resource, Somewhere, Vector, World
 
 class ParseException(Exception):
   def __init__(self, msg: str, *args: object) -> None:
@@ -16,7 +16,7 @@ class Loader(object):
     self.filename = filename
     self.loader_methods: Dict[str, Callable] = {f: getattr(Loader, f) for f in dir(Loader) if callable(getattr(Loader, f)) and "_load" in f}
     self.entity_by_id: Dict[str, Entity] = {}
-    self.action_by_entity_id: Dict[str, Action] = {}
+    self.behavior_by_entity_id: Dict[str, Behavior] = {}
 
   @staticmethod
   def _check_type(obj_dict: Dict, cls):
@@ -49,17 +49,17 @@ class Loader(object):
     for entity_dict in entities:
       world.add(self._load_entity(entity_dict))
     
-    self._attach_entity_actions()
+    self._attach_entity_behaviors()
     
     return world
 
-  def _attach_entity_actions(self) -> None:
-    for entity_id, action_dict in self.action_by_entity_id.items():
+  def _attach_entity_behaviors(self) -> None:
+    for entity_id, behavior_dict in self.behavior_by_entity_id.items():
       entity = self._lookup_entity(entity_id)
-      action = self._load_action(action_dict) if action_dict else None
-      if action:
-        action.entity = entity
-        entity.action = action
+      behavior = self._load_behavior(behavior_dict) if behavior_dict else None
+      if behavior:
+        behavior.entity = entity
+        entity.behavior = behavior
 
   def _load_entity(self, entity_dict: Dict) -> Entity:
     if entity_dict.get('type', None) == Resource.__name__:
@@ -69,13 +69,14 @@ class Loader(object):
     entity_id = entity_dict.get("id")
     position_dict = entity_dict.get("position")
     size = entity_dict.get("size", 10)
-    action_dict = entity_dict.get("action", {'type': 'MoveAround'})
+    behavior_dict = entity_dict.get("behavior", {'type': 'Wander'})
     properties_dict = entity_dict.get('properties', {})
 
-    position = self._load_vector(position_dict)
+    position = Somewhere().get() if position_dict == 'Somewhere' else self._load_vector(position_dict)
     entity = Entity(entity_id, position)
+    entity.behavior = self._load_behavior(behavior_dict)
     self.entity_by_id[entity_id] = entity
-    self.action_by_entity_id[entity_id] = action_dict
+    self.behavior_by_entity_id[entity_id] = behavior_dict
     entity.size = size
     entity.properties = properties_dict
     return entity
@@ -99,20 +100,20 @@ class Loader(object):
     y = vector_dict['y']
 
     return Vector(x, y)
+  
+  def _load_behavior(self, behavior: Dict[str, Any]) -> Behavior:
+    behavior_type: str = behavior.get('type', None)
 
-  def _load_action(self, action_dict: Dict[str, Any]) -> Action:
-    action_type: str = action_dict.get('type', None)
-
-    if not action_type:
-      raise ParseException(msg=f"Type '{action_type}' is not a subclass of {Action.__name__}")
+    if not behavior_type:
+      raise ParseException(msg=f"Type '{behavior_type}' is not a subclass of {Behavior.__name__}")
     
-    loader_name = f"_load_{action_type.lower()}"
+    loader_name = f"_load_{behavior_type.lower()}"
 
     if loader_name not in self.loader_methods:
-      raise ParseException(msg=f"No loader found for {action_type}. Tried '{loader_name}()'")
+      raise ParseException(msg=f"No loader found for {behavior_type}. Tried '{loader_name}()'")
     else:
       loader_method = self.loader_methods[loader_name]
-      return loader_method(self, action_dict)
+      return loader_method(self, behavior)
   
   def _load_moveto(self, moveto_dict: Dict[str, Any]) -> MoveTo:
     self._check_type(moveto_dict, MoveTo)
@@ -121,7 +122,7 @@ class Loader(object):
     never_satisfied = moveto_dict.get("never_satisfied", False)
 
     if not location_dict:
-      raise ParseException(f"MoveTo action needs a location")
+      raise ParseException(f"MoveTo behavior needs a location")
     
     location = None
     if isinstance(location_dict, str):
@@ -138,22 +139,22 @@ class Loader(object):
     location_id = moveto_dict.get("entity", None)
 
     if not location_id or not isinstance(location_id, str):
-      raise ParseException(f"Follow action needs an entity id")
+      raise ParseException(f"Follow behavior needs an entity id")
     
     location = Location(self._lookup_entity(location_id))
     
     return MoveTo(None, location, True)
 
-  def _load_movearound(self, move_dict) -> MoveAround:
-    self._check_type(move_dict, MoveAround)
-    return MoveAround(None)
+  def _load_wander(self, move_dict) -> Wander:
+    self._check_type(move_dict, Wander)
+    return Wander(None)
 
   def _load_grab(self, grab_dict) -> Grab:
     self._check_type(grab_dict, Grab)
 
     resource_id = grab_dict.get("resource", None)
     if not resource_id:
-      raise ParseException(f"Grab action needs a resource")
+      raise ParseException(f"Grab behavior needs a resource")
 
     return Grab(None, self._lookup_entity(resource_id))
 

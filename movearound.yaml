@@ -11,23 +11,23 @@ frame:
           color: red
           size: 5
           speed: 1.2
+      - id: '003'
+        properties:
+          color: blue
+          speed: 2.0
       - id: '002'
         properties:
           color: black
           speed: 0.3
           size: 15
-        action:
+        behavior:
           type: Follow
           entity: '003'
-      - id: '003'
-        properties:
-          color: blue
-          speed: 2.0
       - id: '004'
         properties:
           color: yellow
           speed: 0.5
-        action:
+        behavior:
           type: Follow
           entity: '001'
       - id: '005'
