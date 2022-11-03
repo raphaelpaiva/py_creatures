@@ -1,6 +1,6 @@
 from typing import Any, Callable, Dict
 import yaml
-from .behavior import Grab, Wander, MoveTo, StayStill
+from .behavior import Grab, Wander, MoveTo, StayStill, WanderFollow
 from .world import Entity, Behavior, Frame, Location, Resource, Somewhere, Vector, World
 
 class ParseException(Exception):
@@ -148,6 +148,10 @@ class Loader(object):
   def _load_wander(self, move_dict) -> Wander:
     self._check_type(move_dict, Wander)
     return Wander(None)
+
+  def _load_wanderfollow(self, wanderfollow_dict):
+    self._check_type(wanderfollow_dict, WanderFollow)
+    return WanderFollow(None)
 
   def _load_grab(self, grab_dict) -> Grab:
     self._check_type(grab_dict, Grab)
