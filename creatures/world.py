@@ -59,11 +59,11 @@ class Vector(object):
     return Vector(self.x * mult, self.y * mult)
 
   @property
-  def x(self):
+  def x(self) -> float:
     return self._x
   
   @property
-  def y(self):
+  def y(self) -> float:
     return self._y
 
   def __eq__(self, __o: object) -> bool:
@@ -115,6 +115,9 @@ class Location(object):
       "type": self.type,
       "location": self._location.to_dict() if self.type == "Vector" else self._location.id
     }
+  
+  def __str__(self) -> str:
+    return str(self._location)
 
 class Somewhere(Location):
   def __init__(self, max_x: float = 100, max_y: float = 100) -> None:
@@ -129,10 +132,7 @@ class Entity(object):
     self.size: float = 10
     self._behavior: Behavior = None
     self.mark_remove: bool = False
-    self.properties: Dict[str, str] = {}
-  
-  def behavior(self) -> Behavior:
-    self.behavior.update()
+    self.properties: Dict[str, Any] = {}
 
   @property
   def behavior(self) -> Behavior:
@@ -143,6 +143,14 @@ class Entity(object):
     self._behavior = behavior
     if self.behavior:
       self.behavior.entity = self
+    
+  def distance(self, other: Entity | Vector) -> float:
+    v1 = self.position
+    v2 = Location(other).get()
+
+    x_diff = v1.x - v2.x
+    y_diff = v1.y - v2.y
+    return sqrt( x_diff * x_diff + y_diff * y_diff)
 
   def __str__(self) -> str:
     return f"{self.__class__.__name__}(id={self.id}, position={self.position})"
@@ -199,11 +207,10 @@ class World(object):
   def entities(self) -> List[Entity]:
     return list(self.entities_map.values())
   
-  def any_near(self, entity: Entity) -> Entity | NoneType:
-    # Just a circle
+  def any_near(self, entity: Entity) -> Entity | None:
     for other_entity in self.entities():
-      distance = other_entity.position.sub(entity.position).size()
-      if distance > 0 and distance <= 7.0:
+      distance = entity.distance(other_entity)
+      if distance > 0 and distance <= entity.properties.get('sensor_radius', 7.0):
         return other_entity
     return None
 

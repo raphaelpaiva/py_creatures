@@ -19,8 +19,8 @@ class Loader(object):
     self.behavior_by_entity_id: Dict[str, Behavior] = {}
 
   @staticmethod
-  def _check_type(obj_dict: Dict, cls):
-    obj_type = obj_dict.get('type', cls.__name__)
+  def _check_type(obj_dict: Dict | str, cls):
+    obj_type = obj_dict if isinstance(obj_dict, str) else obj_dict.get('type', cls.__name__)
     if obj_type != cls.__name__:
       raise ParseException(f"Type '{obj_type}' is not compatible with '{cls.__name__}'")
 
@@ -101,8 +101,8 @@ class Loader(object):
 
     return Vector(x, y)
   
-  def _load_behavior(self, behavior: Dict[str, Any]) -> Behavior:
-    behavior_type: str = behavior.get('type', None)
+  def _load_behavior(self, behavior: Dict[str, Any] | str) -> Behavior:
+    behavior_type: str = behavior if isinstance(behavior, str) else behavior.get('type', None)
 
     if not behavior_type:
       raise ParseException(msg=f"Type '{behavior_type}' is not a subclass of {Behavior.__name__}")

@@ -26,6 +26,9 @@ class MoveTo(Behavior):
       "location": self.location.to_dict(),
       "never_satisfied": self.never_satisfied
     }
+  
+  def __str__(self) -> str:
+    return f"{super().__str__()}({self.location})"
 
 class MoveRelative(MoveTo):
   def __init__(self, entity: Entity, location: Vector, never_satisfied=False) -> None:
@@ -92,12 +95,21 @@ class WanderFollow(Behavior):
   
   def run(self, world: World = None):
     self.behavior.entity = self.entity
-    if world and isinstance(self.behavior, Wander):
+    if isinstance(self.behavior, Wander):
       near_entity = world.any_near(self.entity)
       if near_entity:
         self.behavior = MoveTo(self.entity, Location(near_entity))
+    elif isinstance(self.behavior, MoveTo):
+      sensor_radius = self.entity.properties.get('sensor_radius', 7.0)
+      distance = self.entity.distance(self.behavior.location.get())
+
+      if distance > sensor_radius:
+        self.behavior = Wander(self.entity)
     
     self.behavior.run(world)
+  
+  def __str__(self) -> str:
+    return f"{super().__str__()}({self.behavior})"
 
 
 class Grab(Behavior):

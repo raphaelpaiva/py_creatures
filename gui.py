@@ -182,46 +182,49 @@ class App(tkinter.Tk):
 
     self.config(menu=menubar)
 
-class ControlPanel(tk.Frame):
+class ControlPanel(ttk.Frame):
   def __init__(self, master: App):
     super().__init__(master)
     self.master = master
     self.pack(side=tk.RIGHT)
-    self.rows: List[LabeledValue] = []
+    self.cards: List[Card] = []
     self.last_update = current_time()
     self._create_control_panel()
   
-  @property
-  def next_row_num(self) -> int:
-    return len(self.rows)
-  
-  def add_row(self, label: str, update_fn: Callable, initial_value: str = None):
-    if not initial_value:
-      initial_value = update_fn()
-    row = LabeledValue(self, label, initial_value, self.next_row_num, update_fn)
-    self.rows.append(row)
-  
   def update(self) -> None:
-    for row in self.rows:
-      row.update()
+    for card in self.cards:
+      card.update()
     if self.master.animated:
       self.pause_button_label.set(PLAY_TEXT if self.master.paused else PAUSE_TEXT)
     self.last_update = current_time()
     super().update()
 
   def _create_control_panel(self):
-    self.add_row('Current Frame:', lambda: self.master.current_frame.number)
-    self.add_row('Frame time: ', lambda: f"{current_time() - self.last_update:.2f}ms")
-    self.add_row('Actor Name:', lambda: self.master.actor.properties.get('name', self.master.actor.id))
-    self.add_row('Actor position:', lambda: self.master.actor.position)
-    self.add_row('Actor current behavior:', lambda: str(self.master.actor.behavior if self.master.actor.behavior else None))
+    self.world_card = Card(self, 'world')
+    self.world_card.add_row('Current Frame:', lambda: self.master.current_frame.number)
+    self.world_card.add_row('Frame time: ', lambda: f"{current_time() - self.last_update:.2f}ms")
+    self.world_card.pack()
+    self.cards.append(self.world_card)
+
+    self.actor_card = Card(self, 'actor')
+    self.actor_card.add_row('Actor Name:', lambda: self.master.actor.properties.get('name', self.master.actor.id))
+    self.actor_card.add_row('Actor position:', lambda: self.master.actor.position)
+    self.actor_card.add_row('Actor current behavior:', lambda: str(self.master.actor.behavior if self.master.actor.behavior else None))
+    self.actor_card.pack()
+    self.cards.append(self.actor_card)
     if self.master.target:
-      self.add_row('Actor-Target Distance:', lambda: f"{self.master.actor.position.sub(self.master.target.position).size():.2f}")
+      self.target_card = Card(self, 'target')
+      self.target_card.add_row('Actor-Target Distance:', lambda: f"{(self.master.actor.distance(self.master.target)):.2f}")
+      self.target_card.add_row('Target Name:', lambda: self.master.target.properties.get('name', self.master.actor.id))
+      self.target_card.add_row('Target position:', lambda: self.master.target.position)
+      self.target_card.add_row('Target current behavior:', lambda: str(self.master.target.behavior if self.master.target.behavior else None))
+      self.target_card.pack()
+      self.cards.append(self.target_card)
 
     if self.master.animated:
       self.pause_button_label = tk.StringVar(name='pause_button_label', value=PAUSE_TEXT)
       self.pause_button = ttk.Button(self, textvariable=self.pause_button_label, command=self.master.toggle_pause)
-      self.pause_button.grid(row=self.next_row_num, column=0, sticky=tk.N)
+      self.pause_button.pack()
     else:
       btn_frame = ttk.Frame(self)
       for value in ACTIONS.values():
@@ -253,6 +256,25 @@ class LabeledValue(object):
   def update(self):
     if self.update_fn:
       self.tk_var.set(self.update_fn())
+
+class Card(ttk.Labelframe):
+  def __init__(self, master, title: str, *args, **kwargs) -> None:
+    super().__init__(master, text=title, *args, **kwargs)
+    self.rows: List[LabeledValue] = []
+  
+  @property
+  def next_row_num(self) -> int:
+    return len(self.rows)
+  
+  def add_row(self, label: str, update_fn: Callable, initial_value: str = None):
+    if not initial_value:
+      initial_value = update_fn()
+    row = LabeledValue(self, label, initial_value, self.next_row_num, update_fn)
+    self.rows.append(row)
+  
+  def update(self) -> None:
+    for row in self.rows:
+      row.update()
 
 if __name__ == '__main__':
   filename = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_FILENAME
