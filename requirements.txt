@@ -1,2 +1,3 @@
 pyyaml
 matplotlib
+sv_ttk
