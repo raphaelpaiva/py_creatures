@@ -1,25 +1,24 @@
-from copy import deepcopy
 import sys
 import tkinter
 import tkinter as tk
-from tkinter import filedialog
-from tkinter import messagebox
-from tkinter.filedialog import FileDialog
 import tkinter.ttk as ttk
 import traceback
-from types import NoneType
+from copy import deepcopy
+from tkinter import filedialog, messagebox
+from tkinter.filedialog import FileDialog
 from typing import Any, Callable, Dict, List
 import sv_ttk
 
 import matplotlib
-from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import yaml
-from creatures.behavior import MoveRelative, MoveTo
+from matplotlib.animation import FuncAnimation
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+from creatures.behavior import MoveRelative, MoveTo
 from creatures.load import Loader, ParseException
-from creatures.world import Behavior, Entity, Frame, Location, Somewhere, Vector, frame_generator
+from creatures.world import (Behavior, Entity, Frame, Location, Somewhere,
+                             Vector, frame_generator)
 
 DEFAULT_FILENAME = 'wander.yml'
 PAUSE_TEXT = '⏸️'
@@ -90,7 +89,7 @@ class App(tkinter.Tk):
     else:
       self._animate()
 
-  def _animate(self, frame: Frame | NoneType = None):
+  def _animate(self, frame: Frame = None):
     if frame:
       self.current_frame = frame
     self.ax.clear()

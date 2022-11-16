@@ -4,7 +4,6 @@ from copy import deepcopy
 
 from math import sqrt, isclose
 import random
-from types import NoneType
 from typing import Any, Dict, Iterable, List, Union
 
 class Vector(object):
@@ -128,7 +127,7 @@ class Entity(object):
     self.id: str = id
     self.position: Vector = position if position else Somewhere().get()
     self.size: float = 10
-    self._behavior: Behavior | NoneType = None
+    self._behavior: Behavior = None
     self.mark_remove: bool = False
     self.properties: Dict[str, str] = {}
   
@@ -140,7 +139,7 @@ class Entity(object):
     return self._behavior
   
   @behavior.setter
-  def behavior(self, behavior: Behavior | NoneType):
+  def behavior(self, behavior: Behavior):
     self._behavior = behavior
     if self.behavior:
       self.behavior.entity = self
