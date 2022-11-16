@@ -1,4 +1,5 @@
 import sys
+from time import time
 import tkinter
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -48,6 +49,9 @@ ACTIONS = {
 }
 
 DUMMY = Entity('dummy', Somewhere().get())
+
+def current_time():
+  return time() * 1000
 
 class App(tkinter.Tk):
   def __init__(self, filename: str) -> None:
@@ -184,6 +188,7 @@ class ControlPanel(tk.Frame):
     self.master = master
     self.pack(side=tk.RIGHT)
     self.rows: List[LabeledValue] = []
+    self.last_update = current_time()
     self._create_control_panel()
   
   @property
@@ -201,11 +206,12 @@ class ControlPanel(tk.Frame):
       row.update()
     if self.master.animated:
       self.pause_button_label.set(PLAY_TEXT if self.master.paused else PAUSE_TEXT)
+    self.last_update = current_time()
     super().update()
 
-  
   def _create_control_panel(self):
     self.add_row('Current Frame:', lambda: self.master.current_frame.number)
+    self.add_row('Frame time: ', lambda: f"{current_time() - self.last_update:.2f}ms")
     self.add_row('Actor Name:', lambda: self.master.actor.properties.get('name', self.master.actor.id))
     self.add_row('Actor position:', lambda: self.master.actor.position)
     self.add_row('Actor current behavior:', lambda: str(self.master.actor.behavior if self.master.actor.behavior else None))

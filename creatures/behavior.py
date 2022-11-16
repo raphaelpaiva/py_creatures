@@ -1,5 +1,5 @@
 from typing import Any, Dict
-from .world import Behavior, Entity, Location, Resource, Somewhere, Vector
+from .world import Behavior, Entity, Location, Resource, Somewhere, Vector, World
 
 class MoveTo(Behavior):
   def __init__(self, entity: Entity, location: Location, never_satisfied=False) -> None:
@@ -7,7 +7,7 @@ class MoveTo(Behavior):
     self.location = location
     self.never_satisfied = never_satisfied
   
-  def run(self):
+  def run(self, world: World = None):
     speed = self.entity.properties.get('speed', 1.0)
     direction = Vector.from_points(self.entity.position, self.location.get()).unit()
     velocity = direction.scalar(speed)
@@ -31,7 +31,7 @@ class MoveRelative(MoveTo):
   def __init__(self, entity: Entity, location: Vector, never_satisfied=False) -> None:
     super().__init__(entity, location, never_satisfied)
   
-  def run(self):
+  def run(self, world: World = None):
     self.entity.position += self.location
   
   def satisfied(self):
@@ -56,7 +56,7 @@ class Wander(Behavior):
     self.max_distance = max_distance
     self.current_movement = None
 
-  def run(self):
+  def run(self, world: World = None):
     if not self.current_movement:
       self.current_movement = self.next_movement()
     if self.current_movement.satisfied():
@@ -85,6 +85,20 @@ class Wander(Behavior):
       'current_movement': self.current_movement.to_dict() if self.current_movement else None
     }
 
+class WanderFollow(Behavior):
+  def __init__(self, entity: Entity) -> None:
+    super().__init__(entity)
+    self.behavior = Wander(entity)
+  
+  def run(self, world: World = None):
+    self.behavior.entity = self.entity
+    if world and isinstance(self.behavior, Wander):
+      near_entity = world.any_near(self.entity)
+      if near_entity:
+        self.behavior = MoveTo(self.entity, Location(near_entity))
+    
+    self.behavior.run(world)
+
 
 class Grab(Behavior):
   def __init__(self, entity: Entity, resource: Resource) -> None:
@@ -92,7 +106,7 @@ class Grab(Behavior):
     self.resource = resource
     self.underlying_behavior = MoveTo(self.entity, Location(resource))
   
-  def run(self):
+  def run(self, world: World = None):
     if self.underlying_behavior.satisfied():
       self.entity.inventory.append(self.resource)
       self.resource.mark_remove = True

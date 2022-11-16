@@ -82,7 +82,7 @@ class Behavior(object):
     return self.__class__.__name__
 
   @abstractmethod
-  def run(self) -> None: pass
+  def run(self, world: World = None) -> None: pass
   
   @abstractmethod
   def satisfied(self): pass
@@ -185,7 +185,7 @@ class World(object):
 
   def update(self):
     for entity in self.entities():
-      entity.behavior.run()
+      entity.behavior.run(self)
 
     for entity in [a for a in self.entities() if a.mark_remove]:
       self.remove(entity)
@@ -198,6 +198,14 @@ class World(object):
 
   def entities(self) -> List[Entity]:
     return list(self.entities_map.values())
+  
+  def any_near(self, entity: Entity) -> Entity | NoneType:
+    # Just a circle
+    for other_entity in self.entities():
+      distance = other_entity.position.sub(entity.position).size()
+      if distance > 0 and distance <= 7.0:
+        return other_entity
+    return None
 
   @property
   def width(self):
