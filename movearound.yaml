@@ -4,7 +4,7 @@ frame:
     width: 100
     height: 100
     entities:
-      - id: '001'
+      - id: 'agent'
         position: {x: 75, y: 80}
         properties:
           name: Maria
@@ -29,12 +29,129 @@ frame:
           speed: 0.5
         behavior:
           type: Follow
-          entity: '001'
+          entity: 'agent'
       - id: '005'
         properties:
           color: green
           speed: 0.1
-      - id: '006'
+      - id: 'target'
         properties:
           color: pink
           speed: 0.01
+      - id: '007'
+        properties:
+          color: teal
+          speed: 1.2
+      - id: '008'
+        properties:
+          color: grey
+          speed: 0.31
+      - id: '009'
+        properties:
+          color: pink
+          speed: 0.01
+      - id: '010'
+        properties:
+          color: pink
+          speed: 0.72
+      - id: '011'
+        properties:
+          color: pink
+          speed: 0.301
+      - id: '012'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '013'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '014'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '015'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '016'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '017'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '018'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '019'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '020'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '021'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '022'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '023'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '024'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '025'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '026'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '027'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '028'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '029'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '030'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '031'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '032'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '033'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '034'
+        properties:
+          color: pink
+          speed: 0.51
+      - id: '035'
+        properties:
+          color: pink
+          speed: 0.51
+      
