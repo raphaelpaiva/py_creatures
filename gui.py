@@ -4,6 +4,7 @@ import tkinter
 import tkinter as tk
 import tkinter.ttk as ttk
 import traceback
+from dataclasses import dataclass
 from copy import deepcopy
 from tkinter import filedialog, messagebox
 from tkinter.filedialog import FileDialog
@@ -53,10 +54,18 @@ DUMMY = Entity('dummy', Somewhere().get())
 def current_time():
   return time() * 1000
 
+@dataclass
+class Stats(object):
+  frame_time: float
+  render_time: float
+  ui_time: float
+  frame_time: float
+  total_time: float
+
 class App(tkinter.Tk):
   def __init__(self, filename: str) -> None:
     super().__init__()
-    self.title('opa')
+    self.title('py creatures')
     sv_ttk.set_theme('dark')
     self.paused = True
     self.tree_frame = None
@@ -66,6 +75,7 @@ class App(tkinter.Tk):
     self.animated = True
     self.chart = None
     self._current_frame = Frame(None)
+    self.stats: Stats = Stats(0.0, 0.0, 0.0, 0.0)
     
     # Open() does not work as intended. Use cmdline args instead 
     # self._create_menu()
@@ -89,7 +99,7 @@ class App(tkinter.Tk):
 
     self.chart.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
     if self.animated:
-      self.anim = FuncAnimation(self.fig, self._animate, frames=self.frames, interval=20)
+      self.anim = FuncAnimation(self.fig, self._animate, frames=self.frames, interval=10)
     else:
       self._animate()
 
@@ -117,12 +127,21 @@ class App(tkinter.Tk):
     self.control_panel.update()
   
   def step(self):
-    behavior = self.actor.behavior
+    frame_time = current_time()
     next_frame = Frame(deepcopy(self.current_frame.world))
     next_frame.world.update()
+    self.stats.frame_time = current_time() - frame_time
+    
+    render_time = current_time()
     self._animate(next_frame)
-    self.actor.behavior = behavior
+    self.stats.render_time = current_time() - render_time
+
+    ui_time = current_time()
     self.control_panel.update()
+    self.stats.ui_time = current_time() - ui_time
+    self.stats.total_time = current_time() - frame_time
+
+    print(self.stats)
 
   def toggle_pause(self, *args, **kwargs):
     if self.paused:
@@ -188,7 +207,6 @@ class ControlPanel(ttk.Frame):
     self.master = master
     self.pack(side=tk.RIGHT)
     self.cards: List[Card] = []
-    self.last_update = current_time()
     self._create_control_panel()
   
   def update(self) -> None:
@@ -196,21 +214,27 @@ class ControlPanel(ttk.Frame):
       card.update()
     if self.master.animated:
       self.pause_button_label.set(PLAY_TEXT if self.master.paused else PAUSE_TEXT)
-    self.last_update = current_time()
     super().update()
 
   def _create_control_panel(self):
     self.world_card = Card(self, 'world')
     self.world_card.add_row('Current Frame:', lambda: self.master.current_frame.number)
-    self.world_card.add_row('Frame time: ', lambda: f"{current_time() - self.last_update:.2f}ms")
-    self.world_card.pack()
+    self.world_card.pack(anchor='w', pady=10)
     self.cards.append(self.world_card)
+
+    self.stats_card = Card(self, 'stats')
+    self.stats_card.add_row('Frame time:',  lambda: str(self.master.stats.frame_time))
+    self.stats_card.add_row('Render time:', lambda: str(self.master.stats.render_time))
+    self.stats_card.add_row('Ui time:',     lambda: str(self.master.stats.ui_time))
+    self.stats_card.add_row('Total time:',  lambda: str(self.master.stats.total_time))
+    self.stats_card.pack(anchor='w', pady=10)
+    self.cards.append(self.stats_card)
 
     self.actor_card = Card(self, 'actor')
     self.actor_card.add_row('Actor Name:', lambda: self.master.actor.properties.get('name', self.master.actor.id))
     self.actor_card.add_row('Actor position:', lambda: self.master.actor.position)
     self.actor_card.add_row('Actor current behavior:', lambda: str(self.master.actor.behavior if self.master.actor.behavior else None))
-    self.actor_card.pack()
+    self.actor_card.pack(anchor='w', pady=10)
     self.cards.append(self.actor_card)
     if self.master.target:
       self.target_card = Card(self, 'target')
@@ -218,7 +242,7 @@ class ControlPanel(ttk.Frame):
       self.target_card.add_row('Target Name:', lambda: self.master.target.properties.get('name', self.master.actor.id))
       self.target_card.add_row('Target position:', lambda: self.master.target.position)
       self.target_card.add_row('Target current behavior:', lambda: str(self.master.target.behavior if self.master.target.behavior else None))
-      self.target_card.pack()
+      self.target_card.pack(anchor='w', pady=10)
       self.cards.append(self.target_card)
 
     if self.master.animated:
