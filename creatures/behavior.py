@@ -11,7 +11,7 @@ class MoveTo(Behavior):
     speed = self.entity.properties.get('speed', 1.0)
     direction = Vector.from_points(self.entity.position, self.location.get()).unit()
     velocity = direction.scalar(speed)
-    self.entity.position += velocity
+    self.entity.position += velocity * world.dt
 
   def satisfied(self):
     if self.never_satisfied:
@@ -35,7 +35,7 @@ class MoveRelative(MoveTo):
     super().__init__(entity, location, never_satisfied)
   
   def run(self, world: World = None):
-    self.entity.position += self.location
+    self.entity.position += self.location.get().scalar(self.entity.properties.get('speed', 1.0)) * world.dt
   
   def satisfied(self):
     return not self.never_satisfied
@@ -65,7 +65,7 @@ class Wander(Behavior):
     if self.current_movement.satisfied():
       self.current_movement = self.next_movement()
     else:
-      self.current_movement.run()
+      self.current_movement.run(world)
 
   def next_movement(self) -> MoveTo:
     return MoveTo(self.entity, self._next_location())

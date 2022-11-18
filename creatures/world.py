@@ -189,9 +189,11 @@ class World(object):
   def __init__(self, width: int = 100, height: int = 100) -> None:
     self._height = width
     self._width  = height
+    self.dt      = 1.0
     self.entities_map: Dict[str, Entity] = {}
 
-  def update(self):
+  def update(self, dt=1.0):
+    self.dt = dt
     for entity in self.entities():
       entity.behavior.run(self)
 
