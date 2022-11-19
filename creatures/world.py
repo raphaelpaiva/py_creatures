@@ -129,7 +129,6 @@ class Entity(object):
     super().__init__()
     self.id: str = id
     self.position: Vector = position if position else Somewhere().get()
-    self.size: float = 10
     self._behavior: Behavior = None
     self.mark_remove: bool = False
     self.properties: Dict[str, Any] = {}
@@ -143,7 +142,19 @@ class Entity(object):
     self._behavior = behavior
     if self.behavior:
       self.behavior.entity = self
-    
+  
+  @property
+  def name(self) -> str:
+    return self.properties.get('name', self.id)
+  
+  @property
+  def size(self) -> float:
+    return self.properties.get('size', 2.0)
+  
+  @size.setter
+  def size(self, other: float):
+    self.properties['size'] = other
+
   def distance(self, other: Entity | Vector) -> float:
     v1 = self.position
     v2 = Location(other).get()
@@ -153,7 +164,7 @@ class Entity(object):
     return sqrt( x_diff * x_diff + y_diff * y_diff)
 
   def __str__(self) -> str:
-    return f"{self.__class__.__name__}(id={self.id}, position={self.position})"
+    return f"{self.__class__.__name__}({self.name})"
 
   def __repr__(self) -> str:
     return f"{self.__class__.__name__}({self.id}, {self.position})"

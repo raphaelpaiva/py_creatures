@@ -115,7 +115,7 @@ class App(tkinter.Tk):
         entity.position.x,
         entity.position.y,
         marker="o",
-        markersize=entity.properties.get('size', 5),
+        markersize=entity.size,
         markeredgecolor="black",
         markerfacecolor=entity.properties.get('color', 'green')
       )
