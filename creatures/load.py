@@ -1,7 +1,8 @@
-from typing import Any, Callable, Dict
+from importlib.resources import is_resource
+from typing import Any, Callable, Dict, Type
 import yaml
 from .behavior import Grab, Wander, MoveTo, StayStill, WanderFollow
-from .world import Entity, Behavior, Frame, Location, Resource, Somewhere, Vector, World
+from .world import Entity, Behavior, Frame, Location, Somewhere, Vector, World
 
 class ParseException(Exception):
   def __init__(self, msg: str, *args: object) -> None:
@@ -19,10 +20,13 @@ class Loader(object):
     self.behavior_by_entity_id: Dict[str, Behavior] = {}
 
   @staticmethod
-  def _check_type(obj_dict: Dict | str, cls):
-    obj_type = obj_dict if isinstance(obj_dict, str) else obj_dict.get('type', cls.__name__)
-    if obj_type != cls.__name__:
-      raise ParseException(f"Type '{obj_type}' is not compatible with '{cls.__name__}'")
+  def _check_type(obj_dict: Dict | str, *classes: Type | str):
+    for cls in classes:
+      class_name = cls if isinstance(cls, str) else  cls.__name__
+      obj_type = obj_dict if isinstance(obj_dict, str) else obj_dict.get('type', class_name)
+      if obj_type == class_name: return
+      
+    raise ParseException(f"Type '{obj_type}' is not compatible with '{class_name}'")
 
   def _load_frame(self, frame_dict: Dict):   
     number     = frame_dict.get('number', 0)
@@ -62,36 +66,29 @@ class Loader(object):
         entity.behavior = behavior
 
   def _load_entity(self, entity_dict: Dict) -> Entity:
-    if entity_dict.get('type', None) == Resource.__name__:
-      return self._load_resource(entity_dict)
-    self._check_type(entity_dict, Entity)
+    self._check_type(entity_dict, Entity, 'Resource')
 
+    entity_type = entity_dict.get('type', Entity.__name__)
     entity_id = entity_dict.get("id")
     position_dict = entity_dict.get("position")
     size = entity_dict.get("size", 10)
-    behavior_dict = entity_dict.get("behavior", {'type': 'Wander'})
+    
+    default_behavior = {'type': 'Wander'} if entity_type == Entity.__name__ else {'type': 'StayStill'}
+    
+    behavior_dict = entity_dict.get("behavior", default_behavior)
     properties_dict = entity_dict.get('properties', {})
 
     position = Somewhere().get() if position_dict == 'Somewhere' else self._load_vector(position_dict)
     entity = Entity(entity_id, position)
+    entity.type = entity_type
     entity.behavior = self._load_behavior(behavior_dict)
+    
     self.entity_by_id[entity_id] = entity
     self.behavior_by_entity_id[entity_id] = behavior_dict
     entity.size = size
     entity.properties = properties_dict
+
     return entity
-
-  def _load_resource(self, resource_dict: Dict) -> Resource:
-    self._check_type(resource_dict, Resource)
-
-    resouce_id = resource_dict.get("id")
-    position_dict = resource_dict.get("position")
-    size = resource_dict.get("size", 10)
-
-    resource = Resource(resouce_id, self._load_vector(position_dict))
-    self.entity_by_id[resouce_id] = resource
-    resource.size = size
-    return resource
 
   def _load_vector(self, vector_dict: Dict[str, float]):
     if not vector_dict: return None

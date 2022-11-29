@@ -132,6 +132,11 @@ class Entity(object):
     self._behavior: Behavior = None
     self.mark_remove: bool = False
     self.properties: Dict[str, Any] = {}
+    self.type = self.__class__.__name__
+
+  @property
+  def is_resource(self) -> bool:
+    return self.type.lower() == 'resource'
 
   @property
   def behavior(self) -> Behavior:
@@ -171,29 +176,13 @@ class Entity(object):
   
   def to_dict(self) -> Dict[str, Any]:
     return {
-      "type": self.__class__.__name__,
+      "type": self.type,
       "id": self.id,
       "position": self.position.to_dict(),
       "size": self.size,
       "behavior": self.behavior.to_dict() if self.behavior else None,
       "mark_remove": self.mark_remove,
       "properties": self.properties
-    }
-
-class Resource(Entity):
-  def __init__(self, id: str, position: Vector) -> None:
-    super().__init__(id, position)
-    self.behavior = None
-  
-  def to_dict(self) -> Dict[str, Any]:
-    return {
-      "type": self.__class__.__name__,
-      "id": self.id,
-      "position": self.position.to_dict(),
-      "size": self.size,
-      "behavior": self.behavior.to_dict(),
-      "inventory": [r.to_dict() for r in self.inventory],
-      "mark_remove": self.mark_remove,
     }
 
 class World(object):
@@ -280,8 +269,8 @@ def frame_generator(keyframe: Frame) -> Iterable[Frame]:
 def get_example_world() -> World:
   ze     = Entity('Zé', Vector(90, 10))
   maria  = Entity('Maria', Vector(40, 50))
-  food_1 = Resource('food_1', Vector(75, 90))
-  food_2 = Resource('food_2', Vector(10, 10))
+  food_1 = Entity('food_1', Vector(75, 90))
+  food_2 = Entity('food_2', Vector(10, 10))
 
   w = World()
   w.add(ze)

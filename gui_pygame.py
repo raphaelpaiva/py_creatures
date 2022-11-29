@@ -1,20 +1,23 @@
 import sys
 from copy import deepcopy
 from time import time
-from typing import Any, Dict
+from typing import Any, Dict, List
 import pygame as pg
 
 from creatures.load import Loader
-from creatures.world import Frame
+from creatures.world import Entity, Frame
 
-SCREEN_WIDTH = 800
+SCREEN_WIDTH  = 800
 SCREEN_HEIGHT = SCREEN_WIDTH
-ZOOM_LEVEL = 0.8
+ZOOM_LEVEL    = 0.8
+BORDER_WIDTH  = 2
 
 FPS_LIMIT = 0
 
 NICE_COLOR = (128, 11, 87)
-WHITE = (255, 255, 255)
+WHITE      = (255, 255, 255)
+GREEN      = (10, 200, 10)
+BLACK      = (0, 0, 0)
 
 class Stats(object):
   def __init__(self) -> None:
@@ -133,27 +136,59 @@ class App(object):
     
       self.render_stats()
 
-  def _render_middle_layer(self, offset_x, offset_y, sorted_entities):
-      for entity in sorted_entities:
-        border_width = 2
-        size = entity.size * self.scale - border_width
-      
-        entity_pos = [
+  def _render_middle_layer(self, offset_x: float, offset_y: float, sorted_entities: List[Entity]):
+    for entity in sorted_entities:
+      border_width = 2
+      size = entity.size * self.scale - border_width
+    
+      entity_pos = [
         entity.position.x * self.scale + offset_x,
         entity.position.y * self.scale + offset_y
       ]
-        pg.draw.circle(
+      
+      if entity.is_resource:
+        self._render_resource(entity, size, entity_pos)
+      else:
+        self._render_entity(entity, size, entity_pos)
+
+  def _render_resource(self, entity, size, entity_pos):
+    pg.draw.rect(
+      self.screen,
+      GREEN,
+      pg.Rect(
+        entity_pos[0] - size / 2,
+        entity_pos[1] - size / 2,
+        size,
+        size,
+      )
+    )
+
+    pg.draw.rect(
+      self.screen,
+      BLACK,
+      pg.Rect(
+        entity_pos[0] - size / 2,
+        entity_pos[1] - size / 2,
+        size,
+        size,
+      ),
+      width=BORDER_WIDTH
+    )
+          
+  def _render_entity(self, entity, size, entity_pos):
+      pg.draw.circle(
         self.screen,
         entity.properties.get('color', NICE_COLOR),
         entity_pos,
         size
       )
-        pg.draw.circle(
+        
+      pg.draw.circle(
         self.screen,
-        (0, 0, 0),
+        BLACK,
         entity_pos,
         size,
-        width=2
+        width=BORDER_WIDTH
       )
 
   def _render_bottom_layer(self, offset_x, offset_y, sorted_entities):
