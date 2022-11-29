@@ -18,8 +18,17 @@ frame:
           speed: 1
           sensor_radius: 10.0
         behavior: WanderFollow
+      
       - id: res001
         type: Resource
         position: {x: 100, y: 100}
         properties:
           size: 2
+      - id: res002
+        type: Resource
+        properties:
+          size: 2
+      - id: res003
+        type: Resource
+        properties:
+          size: 3

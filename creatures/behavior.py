@@ -1,5 +1,5 @@
 from typing import Any, Dict
-from .world import Behavior, Entity, Location, Resource, Somewhere, Vector, World
+from .world import Behavior, Entity, Location, Somewhere, Vector, World
 
 class MoveTo(Behavior):
   def __init__(self, entity: Entity, location: Location, never_satisfied=False) -> None:
@@ -54,24 +54,26 @@ class StayStill(Behavior):
     }
 
 class Wander(Behavior):
-  def __init__(self, entity: Entity, max_distance: float = 10.0) -> None:
+  def __init__(self, entity: Entity, max_distance: float = 30.0) -> None:
     super().__init__(entity)
     self.max_distance = max_distance
     self.current_movement = None
 
   def run(self, world: World = None):
+    max_x, max_y = world.width - 1, world.height - 1 if world else (100, 100)
+
     if not self.current_movement:
-      self.current_movement = self.next_movement()
+      self.current_movement = self.next_movement(max_x, max_y)
     if self.current_movement.satisfied():
-      self.current_movement = self.next_movement()
+      self.current_movement = self.next_movement(max_x, max_y)
     else:
       self.current_movement.run(world)
 
-  def next_movement(self) -> MoveTo:
-    return MoveTo(self.entity, self._next_location())
+  def next_movement(self, max_x: float, max_y: float) -> MoveTo:
+    return MoveTo(self.entity, self._next_location(max_x, max_y))
   
-  def _next_location(self) -> Location:
-    somewhere = Somewhere().get()
+  def _next_location(self, max_x: float, max_y: float) -> Location:
+    somewhere = Somewhere(max_x, max_y).get()
 
     direction = Vector.from_points(
       self.entity.position,
@@ -113,7 +115,7 @@ class WanderFollow(Behavior):
 
 
 class Grab(Behavior):
-  def __init__(self, entity: Entity, resource: Resource) -> None:
+  def __init__(self, entity: Entity, resource: Entity) -> None:
     super().__init__(entity)
     self.resource = resource
     self.underlying_behavior = MoveTo(self.entity, Location(resource))
@@ -124,7 +126,7 @@ class Grab(Behavior):
       self.resource.mark_remove = True
       self.entity.behavior = MoveTo(self.entity, Location(Vector(100, 0)))
     else:
-      self.underlying_behavior.run()
+      self.underlying_behavior.run(world)
   
   def satisfied(self):
     return False

@@ -18,6 +18,7 @@ class Loader(object):
     self.loader_methods: Dict[str, Callable] = {f: getattr(Loader, f) for f in dir(Loader) if callable(getattr(Loader, f)) and "_load" in f}
     self.entity_by_id: Dict[str, Entity] = {}
     self.behavior_by_entity_id: Dict[str, Behavior] = {}
+    self.world = None
 
   @staticmethod
   def _check_type(obj_dict: Dict | str, *classes: Type | str):
@@ -68,17 +69,17 @@ class Loader(object):
   def _load_entity(self, entity_dict: Dict) -> Entity:
     self._check_type(entity_dict, Entity, 'Resource')
 
-    entity_type = entity_dict.get('type', Entity.__name__)
-    entity_id = entity_dict.get("id")
-    position_dict = entity_dict.get("position")
-    size = entity_dict.get("size", 10)
+    entity_type   = entity_dict.get('type', Entity.__name__)
+    entity_id     = entity_dict.get("id")
+    position_dict = entity_dict.get("position", 'Somewhere')
+    size          = entity_dict.get("size", 10)
     
     default_behavior = {'type': 'Wander'} if entity_type == Entity.__name__ else {'type': 'StayStill'}
     
     behavior_dict = entity_dict.get("behavior", default_behavior)
     properties_dict = entity_dict.get('properties', {})
 
-    position = Somewhere().get() if position_dict == 'Somewhere' else self._load_vector(position_dict)
+    position = Somewhere(self.world.width, self.world.height).get() if position_dict == 'Somewhere' else self._load_vector(position_dict)
     entity = Entity(entity_id, position)
     entity.type = entity_type
     entity.behavior = self._load_behavior(behavior_dict)
