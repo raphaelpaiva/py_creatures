@@ -1,4 +1,7 @@
 from __future__ import annotations
+from time import time
+
+from .system import System
 from abc import abstractmethod
 from copy import deepcopy
 
@@ -187,18 +190,30 @@ class Entity(object):
 
 class World(object):
   def __init__(self, width: int = 100, height: int = 100) -> None:
+    self.TIME_RESOLUTION = 25
     self._height = width
     self._width  = height
     self.dt      = 1.0
     self.entities_map: Dict[str, Entity] = {}
+    self.systems: List[System] = []
 
-  def update(self, dt=1.0):
-    self.dt = dt
+  def update(self, dt: float = -1.0):
+    update_start = time()
+    use_local_dt: bool = dt > 0
+
+    if use_local_dt: self.dt = dt
+    
     for entity in self.entities():
       entity.behavior.run(self)
+    
+    for system in self.systems:
+      system.update()
 
     for entity in [a for a in self.entities() if a.mark_remove]:
       self.remove(entity)
+    
+    update_end = time()
+    if not use_local_dt: self.dt = (update_end - update_start) * self.TIME_RESOLUTION
   
   def add(self, entity: Entity) -> None:
     self.entities_map[entity.id] = entity
@@ -215,6 +230,9 @@ class World(object):
       if distance > 0 and distance <= entity.properties.get('sensor_radius', 7.0):
         return other_entity
     return None
+
+  def add_system(self, system: System):
+    self.systems.append(system)
 
   @property
   def width(self):

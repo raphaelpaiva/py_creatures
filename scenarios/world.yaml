@@ -7,14 +7,12 @@ frame:
       - id: food_1
         type: Resource
         position: {x: 10, y: 90}
-      - id: Z�
+      - id: maria
+        position: {x: 75, y: 80}
+      - id: Ze
         position: {x: 50, y: 50}
         behavior:
           type: MoveTo
-          location: Maria
+          location: maria
           never_satisfied: yes
-      - id: Maria
-        position: {x: 75, y: 80}
-        behavior:
-          type: Grab
-          resource: food_1
+        
