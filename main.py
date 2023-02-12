@@ -22,20 +22,9 @@ def main():
     world.add_system(render_system)
     
     while True:
-      loop_start = time_ms() # ms
-      
       handle_events()
-
-      render_start = time_ms()
-      render_system.render()
-      render_system.stats.render_time = time_ms() - render_start
-
-      update_start = time_ms()
       world.update()
-      
-      render_system.stats.update_time = time_ms() - update_start
-      render_system.stats.total_time = time_ms() - loop_start
-    
+
   except ParseException as e:
     print(e)
     exit(1)

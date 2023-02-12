@@ -1,20 +1,29 @@
+from collections import namedtuple
 from typing import Dict, List
 import pygame as pg
 
 from .world import Entity, World
 from .system import System
 
+UIPosition = namedtuple('UIPosition', ['x', 'y'])
+UISize     = namedtuple('UISize', ['width', 'height'])
+UIColor    = namedtuple('ScreenColor', ['r', 'g', 'b'])
+
 SCREEN_WIDTH  = 800
 SCREEN_HEIGHT = SCREEN_WIDTH
-ZOOM_LEVEL    = 0.8
+ZOOM_LEVEL    = 0.95
 BORDER_WIDTH  = 2
+WORLD_MARGIN  = 5
+ORIGIN        = UIPosition(0, 0)
+DEFAULT_SIZE  = UISize(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 FPS_LIMIT = 0
 
-NICE_COLOR = (128, 11, 87)
-WHITE      = (255, 255, 255)
-GREEN      = (10, 200, 10)
-BLACK      = (0, 0, 0)
+BACKGROUND_GREY = UIColor(200, 200, 200)
+NICE_COLOR      = UIColor(128, 11, 87)
+WHITE           = UIColor(255, 255, 255)
+GREEN           = UIColor(10, 200, 10)
+BLACK           = UIColor(0, 0, 0)
 
 class Stats(object):
   def __init__(self) -> None:
@@ -49,72 +58,113 @@ class Stats(object):
     self.framerate = 1000 / (self.frametime + 0.00001)
     self.world_time += self.dt * 100
 
-class RenderSystem(System):
-  def __init__(self, world: World) -> None:
-    super().__init__()
-    self.world = world
-    self.stats = Stats()
-    self.screen_size = (SCREEN_WIDTH, SCREEN_HEIGHT)
-    self.zoom_level = ZOOM_LEVEL
-    self.fps_limit = FPS_LIMIT
+class SquareWidget(object):
+  def __init__(self,
+    surface:          pg.Surface,
+    position:         UIPosition = ORIGIN,
+    size:             UISize     = DEFAULT_SIZE,
+    background_color: UIColor    = BACKGROUND_GREY,
+    border_width:     int        = BORDER_WIDTH,
+    border_color:     UIColor    = BLACK,
+    margin:           int        = BORDER_WIDTH
+  ) -> None:
+    self.surface          = surface
+    self.size             = size
+    self.background_color = background_color
+    self.border_width     = border_width
+    self.border_color     = border_color
+    self.margin           = margin
+    layout_offset         = self.margin + self.border_width
     
-    pg.init()
-    self.screen = pg.display.set_mode(self.screen_size)
+    self.position         = UIPosition(layout_offset + position.x, layout_offset + position.y)
+    self.rect             = pg.rect.Rect(
+      self.position.x,
+      self.position.y,
+      self.size.width,
+      self.size.height
+    )
+    
+    self.border_rect  = pg.rect.Rect(
+      self.rect.left - self.border_width,
+      self.rect.top  - self.border_width,
+      self.rect.width  + 2 * self.border_width,
+      self.rect.height + 2 * self.border_width
+    )
+  
+  def render(self):
+    pg.draw.rect(
+      self.surface,
+      self.border_color,
+      self.border_rect,
+      width=self.border_width
+    )
 
-    self.bottom_layer = pg.Surface(size=self.screen.get_size())
-    self.world_layer  = pg.Surface(size=self.screen.get_size())
-    self.top_layer    = pg.Surface(size=self.screen.get_size())
+    pg.draw.rect(
+      self.surface,
+      self.background_color,
+      self.rect,
+    )
+
+  @classmethod
+  def center_in_surface(cls, surface: pg.surface, size: UISize) -> UIPosition:
+    return UIPosition(
+      0.5 * (surface.get_width()  - size.width),
+      0.5 * (surface.get_height() - size.height)
+    )
+
+class WorldWidget(SquareWidget):
+  def __init__(
+    self,
+    surface: pg.Surface,
+    world: World,
+    scale: float,
+    font: pg.font.Font,
+    position: UIPosition = ORIGIN,
+    size: UISize = DEFAULT_SIZE,
+    background_color: UIColor = BACKGROUND_GREY,
+    border_width: int = BORDER_WIDTH,
+    border_color: UIColor = BLACK,
+    margin: int = BORDER_WIDTH
+  ) -> None:
+
+    super().__init__(
+      surface,
+      position,
+      size,
+      background_color,
+      border_width,
+      border_color,
+      margin
+    )
+    
+    self.world = world
+    self.scale = scale
+    self.font = font
+    self.bottom_layer = pg.Surface(size=self.surface.get_size())
+    self.world_layer  = pg.Surface(size=self.surface.get_size())
+    self.top_layer    = pg.Surface(size=self.surface.get_size())
     self.layers = {
       'bottom': self.bottom_layer,
       'world': self.world_layer,
       'top': self.top_layer
     }
-
-    self.font = pg.font.SysFont(None, 18)
-
-    self.clock = pg.time.Clock()
-    self.stats.frametime = self.clock.tick(self.fps_limit)
-    
-    self.scale = self.zoom_level * (self.screen.get_width() / self.world.width)
   
-  def update(self):
-    self.render()
-
   def render(self):
-    self.stats.frametime = self.clock.tick(self.fps_limit)
-    self.stats.dt = self.world.dt
-    self.stats.world_time += self.stats.dt
-
-    offset_x = 0.5 * (self.screen.get_width() - self.world.width * self.scale)
-    offset_y = 0.5 * (self.screen.get_height() - self.world.height * self.scale)
+    super().render()
     
-    self.screen.fill(WHITE)
-    # Draw "board"
-    pg.draw.rect(
-      self.screen,
-      (200, 200, 200),
-      pg.rect.Rect(
-        0 + offset_x,
-        0 + offset_y,
-        self.world.width * self.scale,
-        self.world.height * self.scale
-      )
-    )
-
     sorted_entities = sorted(self.world.entities(), key=lambda e: e.size, reverse=True)
-    self._render_bottom_layer(offset_x, offset_y, sorted_entities)
-    self._render_middle_layer(offset_x, offset_y, sorted_entities)
-    self._render_top_layer(offset_x, offset_y, sorted_entities)
-    pg.display.update()
+    self._render_bottom_layer(sorted_entities)
+    self._render_middle_layer(sorted_entities)
+    self._render_top_layer(sorted_entities)
 
-  def _render_top_layer(self, offset_x, offset_y, sorted_entities):
+  def _render_top_layer(self, sorted_entities: List[Entity]):
     for entity in sorted_entities:
-      border_width = 2
-      size = entity.size * self.scale - border_width
+      entity_border_width = 2
+      size = entity.size * self.scale - entity_border_width
     
       entity_pos = [
-      entity.position.x * self.scale + offset_x,
-      entity.position.y * self.scale + offset_y
+      entity.position.x * self.scale + self.position.x,
+      entity.position.y * self.scale + self.position.y
     ]
     
       text_offset = [
@@ -123,22 +173,20 @@ class RenderSystem(System):
     ]
       name_text = self.font.render(entity.properties.get('name', entity.id), True, NICE_COLOR)
       name_pos  = [entity_pos[0] + text_offset[0], entity_pos[1] + text_offset[1]]
-      self.screen.blit(name_text, name_pos)
+      self.surface.blit(name_text, name_pos)
 
       behavior_text = self.font.render(str(entity.behavior), True, NICE_COLOR)
       behavior_pos  = [name_pos[0], name_pos[1] + self.font.get_height()]
-      self.screen.blit(behavior_text, behavior_pos)
-  
-    self.render_stats()
+      self.surface.blit(behavior_text, behavior_pos)
 
-  def _render_middle_layer(self, offset_x: float, offset_y: float, sorted_entities: List[Entity]):
+  def _render_middle_layer(self, sorted_entities: List[Entity]):
     for entity in sorted_entities:
       border_width = 2
       size = entity.size * self.scale - border_width
     
       entity_pos = [
-        entity.position.x * self.scale + offset_x,
-        entity.position.y * self.scale + offset_y
+        entity.position.x * self.scale + self.position.x,
+        entity.position.y * self.scale + self.position.y
       ]
       
       if entity.is_resource:
@@ -148,7 +196,7 @@ class RenderSystem(System):
 
   def _render_resource(self, entity, size, entity_pos):
     pg.draw.rect(
-      self.screen,
+      self.surface,
       GREEN,
       pg.Rect(
         entity_pos[0] - size / 2,
@@ -159,7 +207,7 @@ class RenderSystem(System):
     )
 
     pg.draw.rect(
-      self.screen,
+      self.surface,
       BLACK,
       pg.Rect(
         entity_pos[0] - size / 2,
@@ -172,75 +220,76 @@ class RenderSystem(System):
           
   def _render_entity(self, entity, size, entity_pos):
     pg.draw.circle(
-      self.screen,
+      self.surface,
       entity.properties.get('color', NICE_COLOR),
       entity_pos,
       size
     )
       
     pg.draw.circle(
-      self.screen,
+      self.surface,
       BLACK,
       entity_pos,
       size,
       width=BORDER_WIDTH
     )
 
-  def _render_bottom_layer(self, offset_x, offset_y, sorted_entities):
+  def _render_bottom_layer(self,sorted_entities: List[Entity]):
     for entity in sorted_entities:
-      border_width = 2
-      size = entity.size * self.scale - border_width
-    
       entity_pos = [
-      entity.position.x * self.scale + offset_x,
-      entity.position.y * self.scale + offset_y
-    ]
+        entity.position.x * self.scale + self.position.x,
+        entity.position.y * self.scale + self.position.y
+      ]
 
       if 'sensor_radius' in entity.properties:
         pg.draw.circle(
-        self.screen,
+        self.surface,
         (0, 0, 128),
         entity_pos,
         entity.properties['sensor_radius'] * self.scale
       )
 
-  def render_stats(self, position: list = [10, 10]):
-    y_margin = 5
-    x_margin = 5
-
-    stats = self.stats.get_stats_dict()
-    text_surfaces: List[pg.Surface] = []
-    box_height = 0
-    box_width = 0
-
-    for name, value in stats.items():
-      text = f"{name}: {value}"
-      antialias = True
-      text_surface = self.font.render(
-        text,
-        antialias,
-        NICE_COLOR
-      )
-      box_height += text_surface.get_height() + 2 * y_margin
-      box_width = max(box_width, text_surface.get_width()) + 2 * x_margin
+class RenderSystem(System):
+  def __init__(self, world: World) -> None:
+    super().__init__()
+    self.world = world
+    self.stats = Stats()
+    self.screen_size = (SCREEN_WIDTH, SCREEN_HEIGHT)
+    self.fps_limit = FPS_LIMIT
+    self.widgets: List[SquareWidget] = []
     
-      text_surfaces.append(
-        text_surface
-      )
+    pg.init()
+    self.screen = pg.display.set_mode(self.screen_size)
+    self.font = pg.font.SysFont(None, 18)
 
-    rect = pg.draw.rect(
-      surface=self.screen,
-      rect=pg.Rect(position[0], position[1], box_width, box_height),
-      color=(125, 125, 125)
+    self.clock = pg.time.Clock()
+    self.stats.frametime = self.clock.tick(self.fps_limit)
+
+    self.zoom_level = ZOOM_LEVEL
+    
+    self.scale = self.zoom_level * (self.screen.get_width() / self.world.width)
+
+    world_widget_size = UISize(
+      self.world.width * self.scale,
+      self.world.height * self.scale
     )
 
-    title_surface = self.font.render('stats', True, (87, 11, 128))
-    self.screen.blit(title_surface, [rect.right - x_margin - title_surface.get_width(), rect.top])
+    self.world_widget = WorldWidget(
+      surface=self.screen,
+      world=world,
+      scale=self.scale,
+      font=self.font,
+      position=SquareWidget.center_in_surface(self.screen, world_widget_size),
+      size=world_widget_size
+    )
 
-    y_offset = title_surface.get_height()
-    for text_surface in text_surfaces:
-      pos  = [position[0] + x_margin, position[1] + y_margin + y_offset]
-      self.screen.blit(text_surface, pos)
-      y_offset += y_margin + text_surface.get_height()
+    self.widget = SquareWidget(self.screen, UIPosition(0, 0), UISize(50, 50))
 
-    
+    self.widgets.append(self.world_widget)
+    self.widgets.append(self.widget)
+
+  def update(self):
+    self.screen.fill(WHITE)
+    for widget in self.widgets:
+      widget.render()
+    pg.display.update()
