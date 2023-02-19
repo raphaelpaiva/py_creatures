@@ -159,7 +159,7 @@ class WorldWidget(SquareWidget):
 
   def _render_top_layer(self, sorted_entities: List[Entity]):
     for entity in sorted_entities:
-      entity_border_width = 2
+      entity_border_width = 2 # TODO: Parametrize this
       size = entity.size * self.scale - entity_border_width
     
       entity_pos = [
@@ -286,10 +286,12 @@ class RenderSystem(System):
     self.widget = SquareWidget(self.screen, UIPosition(0, 0), UISize(50, 50))
 
     self.widgets.append(self.world_widget)
-    self.widgets.append(self.widget)
+    #self.widgets.append(self.widget)
 
   def update(self):
     self.screen.fill(WHITE)
+    self.stats.frametime = self.clock.tick(self.fps_limit)
+    pg.display.set_caption(f"Py People ({self.stats.framerate:3.1f} fps)")
     for widget in self.widgets:
       widget.render()
     pg.display.update()

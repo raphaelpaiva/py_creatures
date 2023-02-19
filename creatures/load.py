@@ -1,8 +1,13 @@
 from importlib.resources import is_resource
 from typing import Any, Callable, Dict, Type
 import yaml
-from .behavior import Grab, Wander, MoveTo, StayStill, WanderFollow
-from .world import Entity, Behavior, Frame, Location, Somewhere, Vector, World
+from creatures.behavior_concrete import Grab, MoveTo, StayStill, Wander, WanderFollow
+
+from creatures.entity import Entity
+from creatures.location import Location, Somewhere
+from creatures.primitives import Vector
+from .behavior_abstract import Behavior, BehaviorComponent
+from .world import Frame, World
 
 class ParseException(Exception):
   def __init__(self, msg: str, *args: object) -> None:
@@ -64,7 +69,7 @@ class Loader(object):
       behavior = self._load_behavior(behavior_dict) if behavior_dict else None
       if behavior:
         behavior.entity = entity
-        entity.behavior = behavior
+        entity.add_component(BehaviorComponent(behavior))
 
   def _load_entity(self, entity_dict: Dict) -> Entity:
     self._check_type(entity_dict, Entity, 'Resource')
@@ -127,11 +132,12 @@ class Loader(object):
       location = Location(self._lookup_entity(location_dict))
     elif isinstance(location_dict, dict):
       if location_dict.get('type', '') == Entity.__name__:
-        location = Location(self._lookup_entity(location_dict.get('location')))
+        target = self._lookup_entity(location_dict.get('location'))
+        location = Location(self._make_location_func(target))
       else:
         location = Location(self._load_vector(location_dict))
     
-    return MoveTo(None, location, never_satisfied)
+    return MoveTo(None, location, never_satisfied, world=self.world)
 
   def _load_follow(self, moveto_dict: Dict[str, Any]) -> MoveTo:
     location_id = moveto_dict.get("entity", None)
@@ -139,17 +145,18 @@ class Loader(object):
     if not location_id or not isinstance(location_id, str):
       raise ParseException(f"Follow behavior needs an entity id")
     
-    location = Location(self._lookup_entity(location_id))
+    target = self._lookup_entity(location_id)
+    location = Location(self._make_location_func(target))
     
-    return MoveTo(None, location, True)
+    return MoveTo(None, location, True, self.world)
 
   def _load_wander(self, move_dict) -> Wander:
     self._check_type(move_dict, Wander)
-    return Wander(None)
+    return Wander(None, world=self.world)
 
   def _load_wanderfollow(self, wanderfollow_dict):
     self._check_type(wanderfollow_dict, WanderFollow)
-    return WanderFollow(None)
+    return WanderFollow(None, self.world)
 
   def _load_grab(self, grab_dict) -> Grab:
     self._check_type(grab_dict, Grab)
@@ -158,7 +165,7 @@ class Loader(object):
     if not resource_id:
       raise ParseException(f"Grab behavior needs a resource")
 
-    return Grab(None, self._lookup_entity(resource_id))
+    return Grab(None, lambda: self._lookup_entity(resource_id).position, world=self.world)
 
   def _load_staystill(self, staystill_dict) -> StayStill:
     self._check_type(staystill_dict, StayStill)
@@ -179,3 +186,6 @@ class Loader(object):
   def _load_yaml(self, filename: str) -> Dict[Any, Any]:
     with open(filename) as fd:
       return yaml.safe_load(fd)
+
+  def _make_location_func(self, entity: Entity) -> Callable:
+    return lambda: entity.position

@@ -3,6 +3,7 @@ from time import time
 import traceback
 
 import pygame as pg
+from creatures.behavior_system import BehaviorSystem
 
 from creatures.load import Loader, ParseException
 from creatures.render_system import RenderSystem
@@ -20,6 +21,7 @@ def main():
     world = frame.world
     render_system = RenderSystem(world)
     world.add_system(render_system)
+    world.add_system(BehaviorSystem())
     
     while True:
       handle_events()
