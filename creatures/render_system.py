@@ -2,6 +2,8 @@ from collections import namedtuple
 from typing import Dict, List
 import pygame as pg
 
+from creatures.component import MovementComponent
+
 from .world import Entity, World
 from .system import System
 
@@ -58,9 +60,9 @@ class Stats(object):
     self.framerate = 1000 / (self.frametime + 0.00001)
     self.world_time += self.dt * 100
 
-class SquareWidget(object):
+class Widget(object):
   def __init__(self,
-    surface:          pg.Surface,
+    parent:           pg.Surface,
     position:         UIPosition = ORIGIN,
     size:             UISize     = DEFAULT_SIZE,
     background_color: UIColor    = BACKGROUND_GREY,
@@ -68,7 +70,7 @@ class SquareWidget(object):
     border_color:     UIColor    = BLACK,
     margin:           int        = BORDER_WIDTH
   ) -> None:
-    self.surface          = surface
+    self.parent           = parent
     self.size             = size
     self.background_color = background_color
     self.border_width     = border_width
@@ -77,33 +79,31 @@ class SquareWidget(object):
     layout_offset         = self.margin + self.border_width
     
     self.position         = UIPosition(layout_offset + position.x, layout_offset + position.y)
-    self.rect             = pg.rect.Rect(
-      self.position.x,
-      self.position.y,
-      self.size.width,
-      self.size.height
-    )
+    self.surface          = pg.Surface(size)
+    self.rect             = self.surface.get_rect()
     
     self.border_rect  = pg.rect.Rect(
-      self.rect.left - self.border_width,
-      self.rect.top  - self.border_width,
+      self.position.x + self.rect.left - self.border_width,
+      self.position.y + self.rect.top  - self.border_width,
       self.rect.width  + 2 * self.border_width,
       self.rect.height + 2 * self.border_width
     )
   
   def render(self):
     pg.draw.rect(
-      self.surface,
+      self.parent,
       self.border_color,
       self.border_rect,
       width=self.border_width
     )
 
-    pg.draw.rect(
-      self.surface,
-      self.background_color,
-      self.rect,
-    )
+    self.surface.fill(self.background_color)
+
+    self.update()
+
+    self.parent.blit(self.surface, self.position)
+
+  def update(self): pass
 
   @classmethod
   def center_in_surface(cls, surface: pg.surface, size: UISize) -> UIPosition:
@@ -112,7 +112,19 @@ class SquareWidget(object):
       0.5 * (surface.get_height() - size.height)
     )
 
-class WorldWidget(SquareWidget):
+class TextWidget(Widget):
+  def __init__(self, surface: pg.Surface, text: str, font: pg.font.Font, position: UIPosition = ORIGIN, size: UISize = DEFAULT_SIZE, background_color: UIColor = BACKGROUND_GREY, border_width: int = BORDER_WIDTH, border_color: UIColor = BLACK, margin: int = BORDER_WIDTH) -> None:
+    self.text = text
+    self.font = font
+    self.text_surface = self.font.render(self.text, True, NICE_COLOR)
+    new_size = UISize(self.text_surface.get_width() + margin + border_width, self.text_surface.get_height() + margin + border_width)
+    super().__init__(surface, position, new_size, background_color, border_width, border_color, margin)
+  
+  def update(self):
+    self.surface.blit(self.text_surface, self.position)
+
+
+class WorldWidget(Widget):
   def __init__(
     self,
     surface: pg.Surface,
@@ -149,9 +161,7 @@ class WorldWidget(SquareWidget):
       'top': self.top_layer
     }
   
-  def render(self):
-    super().render()
-    
+  def update(self):
     sorted_entities = sorted(self.world.entities(), key=lambda e: e.size, reverse=True)
     self._render_bottom_layer(sorted_entities)
     self._render_middle_layer(sorted_entities)
@@ -162,10 +172,14 @@ class WorldWidget(SquareWidget):
       entity_border_width = 2 # TODO: Parametrize this
       size = entity.size * self.scale - entity_border_width
     
+      if MovementComponent.__name__ not in entity.components or not entity.components[MovementComponent.__name__]:
+        return
+      movement_component: MovementComponent = entity.components[MovementComponent.__name__][0]
+      
       entity_pos = [
-      entity.position.x * self.scale + self.position.x,
-      entity.position.y * self.scale + self.position.y
-    ]
+        movement_component.position.x * self.scale + self.position.x,
+        movement_component.position.y * self.scale + self.position.y
+      ]
     
       text_offset = [
       5 + size,
@@ -184,9 +198,13 @@ class WorldWidget(SquareWidget):
       border_width = 2
       size = entity.size * self.scale - border_width
     
+      if MovementComponent.__name__ not in entity.components or not entity.components[MovementComponent.__name__]:
+        return
+      movement_component: MovementComponent = entity.components[MovementComponent.__name__][0]
+      
       entity_pos = [
-        entity.position.x * self.scale + self.position.x,
-        entity.position.y * self.scale + self.position.y
+        movement_component.position.x * self.scale + self.position.x,
+        movement_component.position.y * self.scale + self.position.y
       ]
       
       if entity.is_resource:
@@ -236,9 +254,13 @@ class WorldWidget(SquareWidget):
 
   def _render_bottom_layer(self,sorted_entities: List[Entity]):
     for entity in sorted_entities:
+      if MovementComponent.__name__ not in entity.components or not entity.components[MovementComponent.__name__]:
+        return
+      movement_component: MovementComponent = entity.components[MovementComponent.__name__][0]
+      
       entity_pos = [
-        entity.position.x * self.scale + self.position.x,
-        entity.position.y * self.scale + self.position.y
+        movement_component.position.x * self.scale + self.position.x,
+        movement_component.position.y * self.scale + self.position.y
       ]
 
       if 'sensor_radius' in entity.properties:
@@ -256,7 +278,7 @@ class RenderSystem(System):
     self.stats = Stats()
     self.screen_size = (SCREEN_WIDTH, SCREEN_HEIGHT)
     self.fps_limit = FPS_LIMIT
-    self.widgets: List[SquareWidget] = []
+    self.widgets: List[Widget] = []
     
     pg.init()
     self.screen = pg.display.set_mode(self.screen_size)
@@ -279,14 +301,15 @@ class RenderSystem(System):
       world=world,
       scale=self.scale,
       font=self.font,
-      position=SquareWidget.center_in_surface(self.screen, world_widget_size),
+      position=Widget.center_in_surface(self.screen, world_widget_size),
       size=world_widget_size
     )
 
-    self.widget = SquareWidget(self.screen, UIPosition(0, 0), UISize(50, 50))
+    self.widget = Widget(self.screen, UIPosition(0, 0), UISize(50, 50))
 
     self.widgets.append(self.world_widget)
-    #self.widgets.append(self.widget)
+    self.widgets.append(self.widget)
+    self.widgets.append(TextWidget(self.screen, 'OPAuygjhvkjvjkhv', self.font))
 
   def update(self):
     self.screen.fill(WHITE)

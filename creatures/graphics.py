@@ -5,7 +5,7 @@ from creatures.world import Entity, Vector
 class SimpleGraphicComponent(Component):
   def __init__(self, entity: Entity) -> None:
     super().__init__(entity)
-    self.position: Vector = self.entity.position
+    self.position: Vector = self.entity.movement.position
     self.shape: str       = 'rect' if self.entity.is_resource() else 'circle'
     self.color            = self.entity.properties.get('color', NICE_COLOR)
     self.size             = self.entity.size

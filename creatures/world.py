@@ -14,7 +14,7 @@ class World(object):
     self.TIME_RESOLUTION = 1.0
     self._height = width
     self._width  = height
-    self.dt      = 1.0
+    self.dt      = 0.000001
     self.entities_map: Dict[str, Entity] = {}
     self.systems: List[System] = []
 

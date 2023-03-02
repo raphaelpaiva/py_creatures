@@ -5,13 +5,13 @@ class Component(object):
     self.properties = {}
 
 class MetaDataComponent(Component):
-  def __init__(self) -> None:
+  def __init__(self, name: str = '', type: str = '') -> None:
     super().__init__()
-    self.name = ''
+    self.name = name
+    self.type = type
 
 class MovementComponent(Component):
-  def __init__(self) -> None:
-    self.target:       Vector = None
-    self.position:     Vector = Vector(0, 0)
+  def __init__(self, position: Vector = Vector(0, 0)) -> None:
+    self.position:     Vector = position
     self.velocity:     Vector = Vector(0, 0)
-    self.acceleration: Vector = Vector(1, 1)
+    self.acceleration: Vector = Vector(0, 0)

@@ -3,34 +3,46 @@ from math import sqrt
 from typing import Any, Dict, List
 from creatures.location import Location, Somewhere
 from creatures.primitives import Vector
-from .component import Component
+from .component import Component, MetaDataComponent, MovementComponent
 
 _ENTITY_IDS: int = -1
+DEFAULT_MOVEMENT_COMPONENT = [MetaDataComponent()]
 
 def _next_id() -> int:
   _ENTITY_IDS += 1
   return _ENTITY_IDS
  
 class Entity(object):
-  def __init__(self, id: str, position: Vector) -> None:
+  def __init__(self, id: str) -> None:
     super().__init__()
     self.id: str = id if id is not None else str(_next_id())
-    self.position: Vector = position if position else Somewhere().get()
     self.mark_remove: bool = False
     self.properties: Dict[str, Any] = {}
     self.type = self.__class__.__name__
-    self.components: List[Component] = []
+    self.components: Dict[str, List[Component]] = {}
 
   def add_component(self, component: Component):
-    self.components.append(component)
-
-  @property
-  def is_resource(self) -> bool:
-    return self.type.lower() == 'resource'
+    component_type_name = component.__class__.__name__
+    if component_type_name in self.components:
+      self.components[component_type_name].append(component)
+    else:
+      self.components[component_type_name] = [component]
   
   @property
+  def metadata(self) -> MetaDataComponent:
+    return self.components.get(MetaDataComponent.__name__, DEFAULT_MOVEMENT_COMPONENT)[0]
+  
+  @property
+  def movement(self) -> MovementComponent:
+    return self.components.get(MovementComponent.__name__, DEFAULT_MOVEMENT_COMPONENT)[0]
+  
+  @property
+  def is_resource(self) -> bool:
+    return self.metadata.type.lower() == 'resource'
+
+  @property
   def name(self) -> str:
-    return self.properties.get('name', self.id)
+    return self.metadata.get('name', self.id)
   
   @property
   def size(self) -> float:
@@ -41,8 +53,8 @@ class Entity(object):
     self.properties['size'] = other
 
   def distance(self, other: Entity | Vector) -> float:
-    v1 = self.position
-    v2 = other.position if isinstance(other, Entity) else other
+    v1 = self.movement.position
+    v2 = other.movement.position if isinstance(other, Entity) else other
 
     x_diff = v1.x - v2.x
     y_diff = v1.y - v2.y

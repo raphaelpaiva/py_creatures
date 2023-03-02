@@ -15,15 +15,15 @@ class MoveTo(Behavior):
   
   def run(self):
     speed = self.entity.properties.get('speed', 1.0)
-    direction = Vector.from_points(self.entity.position, self.location.get()).unit()
+    direction = Vector.from_points(self.entity.movement.position, self.location.get()).unit()
     velocity = direction.scalar(speed)
-    self.entity.position += velocity * self.world.dt
+    self.entity.movement.position += velocity * self.world.dt
 
   def satisfied(self):
     if self.never_satisfied:
       return False
     else:
-      return self.entity.position == self.location.get()
+      return self.entity.movement.position == self.location.get()
   
   def to_dict(self) -> Dict[str, Any]:
     return {
@@ -41,7 +41,7 @@ class MoveRelative(MoveTo):
     super().__init__(entity, location, never_satisfied, world)
   
   def run(self):
-    self.entity.position += self.location.get().scalar(self.entity.properties.get('speed', 1.0)) * self.world.dt
+    self.entity.movement.position += self.location.get().scalar(self.entity.properties.get('speed', 1.0)) * self.world.dt
   
   def satisfied(self):
     return not self.never_satisfied
@@ -83,11 +83,11 @@ class Wander(Behavior):
     somewhere = Somewhere(max_x, max_y).get()
 
     direction = Vector.from_points(
-      self.entity.position,
+      self.entity.movement.position,
       somewhere
     )
 
-    restricted_direction = self.entity.position + direction.unit().scalar(self.max_distance)
+    restricted_direction = self.entity.movement.position + direction.unit().scalar(self.max_distance)
       
     return Location(restricted_direction)
   
@@ -108,7 +108,7 @@ class WanderFollow(Behavior):
     if isinstance(self.behavior, Wander):
       near_entity = self.world.any_near(self.entity)
       if near_entity:
-        self.behavior = MoveTo(self.entity, Location(lambda: near_entity.position), world=self.world)
+        self.behavior = MoveTo(self.entity, Location(lambda: near_entity.movement.position), world=self.world)
     elif isinstance(self.behavior, MoveTo):
       sensor_radius = self.entity.properties.get('sensor_radius', 7.0)
       distance = self.entity.distance(self.behavior.location.get())

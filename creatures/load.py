@@ -2,6 +2,7 @@ from importlib.resources import is_resource
 from typing import Any, Callable, Dict, Type
 import yaml
 from creatures.behavior_concrete import Grab, MoveTo, StayStill, Wander, WanderFollow
+from creatures.component import MetaDataComponent, MovementComponent
 
 from creatures.entity import Entity
 from creatures.location import Location, Somewhere
@@ -85,8 +86,9 @@ class Loader(object):
     properties_dict = entity_dict.get('properties', {})
 
     position = Somewhere(self.world.width, self.world.height).get() if position_dict == 'Somewhere' else self._load_vector(position_dict)
-    entity = Entity(entity_id, position)
-    entity.type = entity_type
+    entity = Entity(entity_id)
+    entity.add_component(MovementComponent(position))
+    entity.add_component(MetaDataComponent(properties_dict.get('name', entity_id), entity_type))
     entity.behavior = self._load_behavior(behavior_dict)
     
     self.entity_by_id[entity_id] = entity
@@ -129,7 +131,8 @@ class Loader(object):
     
     location = None
     if isinstance(location_dict, str):
-      location = Location(self._lookup_entity(location_dict))
+      entity = self._lookup_entity(location_dict)
+      location = Location(lambda: entity.movement.position)
     elif isinstance(location_dict, dict):
       if location_dict.get('type', '') == Entity.__name__:
         target = self._lookup_entity(location_dict.get('location'))
@@ -188,4 +191,4 @@ class Loader(object):
       return yaml.safe_load(fd)
 
   def _make_location_func(self, entity: Entity) -> Callable:
-    return lambda: entity.position
+    return lambda: entity.movement.position
