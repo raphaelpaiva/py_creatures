@@ -1,12 +1,12 @@
 from __future__ import annotations
-from math import isclose
+from math import isclose, sqrt
 from typing import Any, Dict
-import numpy as np
 
 class Vector(object):
-  def __init__(self, x: float = 0, y: float = 0, vec = None) -> None:
+  def __init__(self, x: float, y: float) -> None:
     super().__init__()
-    self._vec = np.array([x, y]) if vec is None else vec
+    self._x: float = x
+    self._y: float = y
   
   @classmethod
   def from_points(cls, origin: Vector, dest: Vector) -> Vector:
@@ -34,38 +34,33 @@ class Vector(object):
     return self.mul(other)
 
   def mul(self, value: Any[float, int]) -> Vector:
-    return Vector(vec=self._vec * value)
+    return Vector(self.x * value, self.y * value)
 
   def div(self, value: Any[float, int]) -> Vector:
     return self * (1.0 / value)
 
-  def add(self, other: Vector) -> Vector:
-    return Vector(vec=self._vec + other._vec)
+  def add(self, vec: Vector) -> Vector:
+    return Vector(self.x + vec.x, self.y + vec.y)
 
-  def sub(self, other: Vector) -> Vector:
-    return Vector(vec=self._vec - other._vec)
+  def sub(self, vec: Vector) -> Vector:
+    return Vector(self.x - vec.x, self.y - vec.y)
 
   def size(self) -> float:
-    return np.sqrt(np.power(self._vec, [2, 2]))
-    #return sqrt(self.x * self.x + self.y * self.y)
+    return sqrt(self.x * self.x + self.y * self.y)
 
   def unit(self) -> Vector:
-    return Vector(vec=self._vec / self.size())
+    return self / self.size()
   
   def scalar(self, mult: float) -> Vector:
-    return Vector(vec=self._vec * mult)
+    return Vector(self.x * mult, self.y * mult)
 
-  def as_tuple(self):
-    return (self.x, self.x)
-  
   @property
   def x(self) -> float:
-    return self._vec[0]
+    return self._x
   
   @property
   def y(self) -> float:
-    return self._vec[1]
-
+    return self._y
 
   def __eq__(self, __o: object) -> bool:
     return isinstance(__o, Vector) and ( isclose(self.x, __o.x, rel_tol=1e-1) and isclose(self.y, __o.y, rel_tol=1e-1))

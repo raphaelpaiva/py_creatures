@@ -3,11 +3,12 @@ from typing import Dict, List
 import pygame as pg
 
 from creatures.component import MovementComponent
-from creatures.primitives import Vector
 
 from .world import Entity, World
 from .system import System
 
+UIPosition = namedtuple('UIPosition', ['x', 'y'])
+UISize     = namedtuple('UISize', ['width', 'height'])
 UIColor    = namedtuple('ScreenColor', ['r', 'g', 'b'])
 
 SCREEN_WIDTH  = 800
@@ -15,8 +16,8 @@ SCREEN_HEIGHT = SCREEN_WIDTH
 ZOOM_LEVEL    = 0.95
 BORDER_WIDTH  = 2
 WORLD_MARGIN  = 5
-ORIGIN        = Vector(0, 0)
-DEFAULT_SIZE  = Vector(SCREEN_WIDTH, SCREEN_HEIGHT)
+ORIGIN        = UIPosition(0, 0)
+DEFAULT_SIZE  = UISize(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 FPS_LIMIT = 0
 
@@ -62,12 +63,12 @@ class Stats(object):
 class Widget(object):
   def __init__(self,
     parent:           pg.Surface,
-    position:         Vector  = ORIGIN,
-    size:             Vector  = DEFAULT_SIZE,
-    background_color: UIColor = BACKGROUND_GREY,
-    border_width:     int     = BORDER_WIDTH,
-    border_color:     UIColor = BLACK,
-    margin:           int     = BORDER_WIDTH
+    position:         UIPosition = ORIGIN,
+    size:             UISize     = DEFAULT_SIZE,
+    background_color: UIColor    = BACKGROUND_GREY,
+    border_width:     int        = BORDER_WIDTH,
+    border_color:     UIColor    = BLACK,
+    margin:           int        = BORDER_WIDTH
   ) -> None:
     self.parent           = parent
     self.size             = size
@@ -77,8 +78,8 @@ class Widget(object):
     self.margin           = margin
     layout_offset         = self.margin + self.border_width
     
-    self.position         = Vector(layout_offset + position.x, layout_offset + position.y)
-    self.surface          = pg.Surface(size.as_tuple())
+    self.position         = UIPosition(layout_offset + position.x, layout_offset + position.y)
+    self.surface          = pg.Surface(size)
     self.rect             = self.surface.get_rect()
     
     self.border_rect  = pg.rect.Rect(
@@ -100,27 +101,27 @@ class Widget(object):
 
     self.update()
 
-    self.parent.blit(self.surface, self.position.as_tuple())
+    self.parent.blit(self.surface, self.position)
 
   def update(self): pass
 
   @classmethod
-  def center_in_surface(cls, surface: pg.surface, size: Vector) -> Vector:
-    return Vector(
-      0.5 * (surface.get_width()  - size.x),
-      0.5 * (surface.get_height() - size.y)
+  def center_in_surface(cls, surface: pg.surface, size: UISize) -> UIPosition:
+    return UIPosition(
+      0.5 * (surface.get_width()  - size.width),
+      0.5 * (surface.get_height() - size.height)
     )
 
 class TextWidget(Widget):
-  def __init__(self, surface: pg.Surface, text: str, font: pg.font.Font, position: Vector = ORIGIN, size: Vector = DEFAULT_SIZE, background_color: UIColor = BACKGROUND_GREY, border_width: int = BORDER_WIDTH, border_color: UIColor = BLACK, margin: int = BORDER_WIDTH) -> None:
+  def __init__(self, surface: pg.Surface, text: str, font: pg.font.Font, position: UIPosition = ORIGIN, size: UISize = DEFAULT_SIZE, background_color: UIColor = BACKGROUND_GREY, border_width: int = BORDER_WIDTH, border_color: UIColor = BLACK, margin: int = BORDER_WIDTH) -> None:
     self.text = text
     self.font = font
     self.text_surface = self.font.render(self.text, True, NICE_COLOR)
-    new_size = Vector(self.text_surface.get_width() + margin + border_width, self.text_surface.get_height() + margin + border_width)
+    new_size = UISize(self.text_surface.get_width() + margin + border_width, self.text_surface.get_height() + margin + border_width)
     super().__init__(surface, position, new_size, background_color, border_width, border_color, margin)
   
   def update(self):
-    self.surface.blit(self.text_surface, self.position.as_tuple())
+    self.surface.blit(self.text_surface, self.position)
 
 
 class WorldWidget(Widget):
@@ -130,8 +131,8 @@ class WorldWidget(Widget):
     world: World,
     scale: float,
     font: pg.font.Font,
-    position: Vector = ORIGIN,
-    size: Vector = DEFAULT_SIZE,
+    position: UIPosition = ORIGIN,
+    size: UISize = DEFAULT_SIZE,
     background_color: UIColor = BACKGROUND_GREY,
     border_width: int = BORDER_WIDTH,
     border_color: UIColor = BLACK,
@@ -171,35 +172,45 @@ class WorldWidget(Widget):
       entity_border_width = 2 # TODO: Parametrize this
       size = entity.size * self.scale - entity_border_width
     
-      if not entity.movement:
-        # Nothing to render
-        continue
+      if MovementComponent.__name__ not in entity.components or not entity.components[MovementComponent.__name__]:
+        return
+      movement_component: MovementComponent = entity.components[MovementComponent.__name__][0]
       
-      entity_screen_pos = entity.movement.position * self.scale + self.position
-      text_offset = Vector(5 + size, -1 * size - 5)
-      
+      entity_pos = [
+        movement_component.position.x * self.scale + self.position.x,
+        movement_component.position.y * self.scale + self.position.y
+      ]
+    
+      text_offset = [
+      5 + size,
+      -1 * size - 5
+    ]
       name_text = self.font.render(entity.properties.get('name', entity.id), True, NICE_COLOR)
-      name_pos  = entity_screen_pos + text_offset
-      self.surface.blit(name_text, name_pos.as_tuple())
+      name_pos  = [entity_pos[0] + text_offset[0], entity_pos[1] + text_offset[1]]
+      self.surface.blit(name_text, name_pos)
 
       behavior_text = self.font.render(str(entity.behavior), True, NICE_COLOR)
-      behavior_pos  = name_pos + Vector(0, self.font.get_height())
-      self.surface.blit(behavior_text, behavior_pos.as_tuple())
+      behavior_pos  = [name_pos[0], name_pos[1] + self.font.get_height()]
+      self.surface.blit(behavior_text, behavior_pos)
 
   def _render_middle_layer(self, sorted_entities: List[Entity]):
     for entity in sorted_entities:
       border_width = 2
       size = entity.size * self.scale - border_width
     
-      if not entity.movement:
-        continue
+      if MovementComponent.__name__ not in entity.components or not entity.components[MovementComponent.__name__]:
+        return
+      movement_component: MovementComponent = entity.components[MovementComponent.__name__][0]
       
-      entity_screen_pos = entity.movement.position * self.scale + self.position
+      entity_pos = [
+        movement_component.position.x * self.scale + self.position.x,
+        movement_component.position.y * self.scale + self.position.y
+      ]
       
       if entity.is_resource:
-        self._render_resource(entity, size, entity_screen_pos.as_tuple())
+        self._render_resource(entity, size, entity_pos)
       else:
-        self._render_entity(entity, size, entity_screen_pos.as_tuple())
+        self._render_entity(entity, size, entity_pos)
 
   def _render_resource(self, entity, size, entity_pos):
     pg.draw.rect(
@@ -243,16 +254,20 @@ class WorldWidget(Widget):
 
   def _render_bottom_layer(self,sorted_entities: List[Entity]):
     for entity in sorted_entities:
-      if not entity.movement:
-        continue
+      if MovementComponent.__name__ not in entity.components or not entity.components[MovementComponent.__name__]:
+        return
+      movement_component: MovementComponent = entity.components[MovementComponent.__name__][0]
       
-      entity_pos = entity.movement.position * self.scale + self.position
+      entity_pos = [
+        movement_component.position.x * self.scale + self.position.x,
+        movement_component.position.y * self.scale + self.position.y
+      ]
 
       if 'sensor_radius' in entity.properties:
         pg.draw.circle(
         self.surface,
         (0, 0, 128),
-        entity_pos.as_tuple(),
+        entity_pos,
         entity.properties['sensor_radius'] * self.scale
       )
 
@@ -276,7 +291,7 @@ class RenderSystem(System):
     
     self.scale = self.zoom_level * (self.screen.get_width() / self.world.width)
 
-    world_widget_size = Vector(
+    world_widget_size = UISize(
       self.world.width * self.scale,
       self.world.height * self.scale
     )
@@ -290,7 +305,7 @@ class RenderSystem(System):
       size=world_widget_size
     )
 
-    self.widget = Widget(self.screen, Vector(0, 0), Vector(50, 50))
+    self.widget = Widget(self.screen, UIPosition(0, 0), UISize(50, 50))
 
     self.widgets.append(self.world_widget)
     self.widgets.append(self.widget)
