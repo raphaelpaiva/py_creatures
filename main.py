@@ -7,6 +7,7 @@ from creatures.behavior_system import BehaviorSystem
 
 from creatures.load import Loader, ParseException
 from creatures.render_system import RenderSystem
+from creatures.world import World
 
 DEFAULT_FILENAME = 'scenarios/somecreatures.yml'
 DEFAULT_FRAME_NUMBER = 'infinite'
@@ -16,13 +17,11 @@ def main():
   filename = DEFAULT_FILENAME
   if len(sys.argv) > 1:
     filename = sys.argv[1]
-  
   benchmark = len(sys.argv) > 2 and sys.argv[2] == '-b'
-
   
   try:
     frame = Loader(filename).load()
-    world = frame.world
+    world: World = frame.world
     render_system = RenderSystem(world)
     world.add_system(render_system)
     world.add_system(BehaviorSystem())
@@ -39,7 +38,7 @@ def main():
     traceback.print_exc() #sys.exc_info()[2]
     exit(255)
 
-def infinite_loop(world):
+def infinite_loop(world: World):
   while True:
     handle_events()
     world.update()
