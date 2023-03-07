@@ -10,7 +10,7 @@ class BehaviorSystem(System):
     self.processing_list: List[Entity] = []
   
   def accept(self, entities: List[Entity]):
-    self.processing_list.extend(entities)
+    self.processing_list = entities
 
   def update(self):
     for entity in self.processing_list:
