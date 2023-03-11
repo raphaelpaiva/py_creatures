@@ -4,6 +4,7 @@ from creatures.behavior import Grab, MoveTo, StayStill, Wander, WanderFollow
 from creatures.component import MetaDataComponent, MovementComponent
 
 from creatures.entity import Entity
+from creatures.render_system.graphics import SimpleGraphicComponent
 from creatures.location import Location, Somewhere
 from creatures.primitives import Vector
 from .behavior.behavior_abstract import Behavior, BehaviorComponent
@@ -85,15 +86,15 @@ class Loader(object):
     properties_dict = entity_dict.get('properties', {})
 
     position = Somewhere(self.world.width, self.world.height).get() if position_dict == 'Somewhere' else self._load_vector(position_dict)
-    entity = Entity(entity_id)
-    entity.add_component(MovementComponent(position))
-    entity.add_component(MetaDataComponent(properties_dict.get('name', entity_id), entity_type))
-    entity.behavior = self._load_behavior(behavior_dict)
-    
+    entity = Entity(entity_id) 
     self.entity_by_id[entity_id] = entity
     self.behavior_by_entity_id[entity_id] = behavior_dict
     entity.size = size
     entity.properties = properties_dict
+    entity.add_component(MovementComponent(position))
+    entity.add_component(MetaDataComponent(properties_dict.get('name', entity_id), entity_type))
+    entity.add_component(SimpleGraphicComponent(entity))
+    entity.behavior = self._load_behavior(behavior_dict)
 
     return entity
 

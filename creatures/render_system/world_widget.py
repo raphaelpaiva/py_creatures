@@ -1,7 +1,9 @@
 from typing import List
 import pygame as pg
+import pygame.gfxdraw as gfx
 from creatures.component import MovementComponent
 from creatures.entity import Entity
+from creatures.render_system.graphics import SimpleGraphicComponent
 from creatures.primitives import Vector
 
 from creatures.render_system.aux_types import UIColor, UIPosition, UISize
@@ -47,89 +49,81 @@ class WorldWidget(Widget):
     }
   
   def update(self):
-    sorted_entities = sorted(self.world.entities(), key=lambda e: e.size, reverse=True)
-    self._render_bottom_layer(sorted_entities)
-    self._render_middle_layer(sorted_entities)
-    self._render_top_layer(sorted_entities)
+    graphics = [e.components[SimpleGraphicComponent.__name__][0] for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
+    self._render_bottom_layer(graphics)
+    self._render_middle_layer(graphics)
+    self._render_top_layer(graphics)
 
-  def _render_top_layer(self, sorted_entities: List[Entity]):
-    for entity in sorted_entities:
-      entity_border_width = 2 # TODO: Parametrize this
-      size = entity.size * self.scale - entity_border_width
+  def _render_top_layer(self, graphics: List[SimpleGraphicComponent]):
+    for graphic in graphics:
+      size = graphic.size * self.scale - graphic.border_width
       
-      entity_pos = entity.movement.position * self.scale + self.position
-    
+      graphic_pos = graphic.position * self.scale + self.position
+      
       text_offset = Vector(5 + size, -1 * size - 5)
       
-      name_text = self.font.render(entity.properties.get('name', entity.id), True, NICE_COLOR)
-      name_pos  = entity_pos + text_offset
-      self.surface.blit(name_text, name_pos.as_tuple())
+      for text in graphic.text:
+        rendered = self.font.render(text, True, NICE_COLOR)
+        text_position = graphic_pos + text_offset
+        self.surface.blit(rendered, text_position.as_tuple())
+        text_offset += Vector(0, self.font.get_height())
 
-      behavior_text = self.font.render(str(entity.behavior), True, NICE_COLOR)
-      behavior_pos  = name_pos + Vector(0, self.font.get_height())
-      self.surface.blit(behavior_text, behavior_pos.as_tuple())
+  def _render_middle_layer(self, graphics: List[SimpleGraphicComponent]):
+    for graphic in graphics:
+      graphic_size = graphic.size * self.scale - graphic.border_width
+      graphic_pos = graphic.position * self.scale + self.position
+      graphic_color = pg.colordict.THECOLORS.get(graphic.color) if isinstance(graphic.color, str) else graphic.color
 
-  def _render_middle_layer(self, sorted_entities: List[Entity]):
-    for entity in sorted_entities:
-      border_width = 2
-      size = entity.size * self.scale - border_width
-      
-      entity_pos = entity.movement.position * self.scale + self.position
-      
-      if entity.is_resource:
-        self._render_resource(entity, size, entity_pos)
-      else:
-        self._render_entity(entity, size, entity_pos)
+      if graphic.shape == 'circle':
+        gfx.filled_circle(
+          self.surface,
+          int(graphic_pos.x),
+          int(graphic_pos.y),
+          int(graphic_size),
+          graphic_color
+        )
+        gfx.aacircle(
+          self.surface,
+          int(graphic_pos.x),
+          int(graphic_pos.y),
+          int(graphic_size),
+          BLACK
+        )
+      elif graphic.shape == 'rect':
+        pg.draw.rect(
+          self.surface,
+          GREEN,
+          pg.Rect(
+            graphic_pos.x - graphic_size / 2,
+            graphic_pos.y - graphic_size / 2,
+            graphic_size,
+            graphic_size,
+          )
+        )
 
-  def _render_resource(self, entity: Entity, size: float, entity_pos: Vector):
-    pg.draw.rect(
-      self.surface,
-      GREEN,
-      pg.Rect(
-        entity_pos.x - size / 2,
-        entity_pos.y - size / 2,
-        size,
-        size,
-      )
-    )
+        pg.draw.rect(
+          self.surface,
+          BLACK,
+          pg.Rect(
+            graphic_pos.x - graphic_size / 2,
+            graphic_pos.y - graphic_size / 2,
+            graphic_size,
+            graphic_size,
+          ),
+          width=graphic.border_width
+        )
 
-    pg.draw.rect(
-      self.surface,
-      BLACK,
-      pg.Rect(
-        entity_pos.x - size / 2,
-        entity_pos.y - size / 2,
-        size,
-        size,
-      ),
-      width=BORDER_WIDTH
-    )
-          
-  def _render_entity(self, entity: Entity, size: float, entity_pos: Vector):
-    pg.draw.circle(
-      self.surface,
-      entity.properties.get('color', NICE_COLOR),
-      entity_pos.as_tuple(),
-      size
-    )
-      
-    pg.draw.circle(
-      self.surface,
-      BLACK,
-      entity_pos.as_tuple(),
-      size,
-      width=BORDER_WIDTH
-    )
+  def _render_bottom_layer(self,graphics: List[SimpleGraphicComponent]):
+    for graphic in graphics:
+      graphic_pos  = graphic.position * self.scale + self.position
 
-  def _render_bottom_layer(self,sorted_entities: List[Entity]):
-    for entity in sorted_entities:
-      entity_pos = entity.movement.position * self.scale + self.position
-
-      if 'sensor_radius' in entity.properties:
-        pg.draw.circle(
-        self.surface,
-        BLACK,
-        entity_pos.as_tuple(),
-        entity.properties['sensor_radius'] * self.scale,
-        width=BORDER_WIDTH
-      )
+      if 'sensor_radius' in graphic.entity.properties:
+        graphic_size = graphic.entity.properties['sensor_radius'] * self.scale
+        gfx.aacircle(
+          self.surface,
+          int(graphic_pos.x),
+          int(graphic_pos.y),
+          int(graphic_size),
+          BLACK
+        )
+        
