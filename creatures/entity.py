@@ -6,7 +6,8 @@ from creatures.primitives import Vector
 from .component import Component, MetaDataComponent, MovementComponent
 
 _ENTITY_IDS: int = -1
-DEFAULT_MOVEMENT_COMPONENT = [MetaDataComponent()]
+DEFAULT_MOVEMENT_COMPONENT = [MovementComponent()]
+DEFAULT_METADATA_COMPONENT = [MetaDataComponent()]
 
 def _next_id() -> int:
   _ENTITY_IDS += 1
@@ -30,7 +31,7 @@ class Entity(object):
   
   @property
   def metadata(self) -> MetaDataComponent:
-    return self.components.get(MetaDataComponent.__name__, DEFAULT_MOVEMENT_COMPONENT)[0]
+    return self.components.get(MetaDataComponent.__name__, DEFAULT_METADATA_COMPONENT)[0]
   
   @property
   def movement(self) -> MovementComponent:

@@ -6,6 +6,7 @@ import pygame as pg
 from creatures.behavior_system import BehaviorSystem
 
 from creatures.load import Loader, ParseException
+from creatures.movement_system import MovementSystem
 from creatures.render_system import RenderSystem
 from creatures.world import World
 
@@ -22,9 +23,9 @@ def main():
   try:
     frame = Loader(filename).load()
     world: World = frame.world
-    render_system = RenderSystem(world)
-    world.add_system(render_system)
+    world.add_system(RenderSystem(world))
     world.add_system(BehaviorSystem())
+    world.add_system(MovementSystem(world))
     
     if benchmark:
       benchmark_loop(world)

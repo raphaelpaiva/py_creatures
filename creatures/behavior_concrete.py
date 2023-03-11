@@ -16,8 +16,7 @@ class MoveTo(Behavior):
   def run(self):
     speed = self.entity.properties.get('speed', 1.0)
     direction = Vector.from_points(self.entity.movement.position, self.location.get()).unit()
-    velocity = direction.scalar(speed)
-    self.entity.movement.position += velocity * self.world.dt
+    self.entity.movement.velocity = direction.scalar(speed)
 
   def satisfied(self):
     if self.never_satisfied:
@@ -41,7 +40,7 @@ class MoveRelative(MoveTo):
     super().__init__(entity, location, never_satisfied, world)
   
   def run(self):
-    self.entity.movement.position += self.location.get().scalar(self.entity.properties.get('speed', 1.0)) * self.world.dt
+    self.entity.movement.velocity += self.location.get().scalar(self.entity.properties.get('speed', 1.0))
   
   def satisfied(self):
     return not self.never_satisfied
