@@ -11,7 +11,7 @@ from typing import Any, Dict, Iterable, List
 
 class World(object):
   def __init__(self, width: int = 100, height: int = 100) -> None:
-    self.TIME_RESOLUTION = 1.0
+    self.TIME_RESOLUTION = 10.0
     self._height = width
     self._width  = height
     self.dt      = 0.000001

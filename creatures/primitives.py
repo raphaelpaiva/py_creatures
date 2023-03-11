@@ -1,6 +1,6 @@
 from __future__ import annotations
 from math import isclose, sqrt
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 
 class Vector(object):
   def __init__(self, x: float, y: float) -> None:
@@ -61,6 +61,9 @@ class Vector(object):
   @property
   def y(self) -> float:
     return self._y
+
+  def as_tuple(self) -> Tuple[float, float]:
+    return (self.x, self.y)
 
   def __eq__(self, __o: object) -> bool:
     return isinstance(__o, Vector) and ( isclose(self.x, __o.x, rel_tol=1e-1) and isclose(self.y, __o.y, rel_tol=1e-1))
