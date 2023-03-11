@@ -2,6 +2,7 @@ from typing import List
 import pygame as pg
 from creatures.component import MovementComponent
 from creatures.entity import Entity
+from creatures.primitives import Vector
 
 from creatures.render_system.aux_types import UIColor, UIPosition, UISize
 from creatures.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, GREEN, NICE_COLOR, ORIGIN
@@ -55,50 +56,38 @@ class WorldWidget(Widget):
     for entity in sorted_entities:
       entity_border_width = 2 # TODO: Parametrize this
       size = entity.size * self.scale - entity_border_width
-
-      movement_component: MovementComponent = entity.movement
       
-      entity_pos = [
-        movement_component.position.x * self.scale + self.position.x,
-        movement_component.position.y * self.scale + self.position.y
-      ]
+      entity_pos = entity.movement.position * self.scale + self.position
     
-      text_offset = [
-      5 + size,
-      -1 * size - 5
-    ]
+      text_offset = Vector(5 + size, -1 * size - 5)
+      
       name_text = self.font.render(entity.properties.get('name', entity.id), True, NICE_COLOR)
-      name_pos  = [entity_pos[0] + text_offset[0], entity_pos[1] + text_offset[1]]
-      self.surface.blit(name_text, name_pos)
+      name_pos  = entity_pos + text_offset
+      self.surface.blit(name_text, name_pos.as_tuple())
 
       behavior_text = self.font.render(str(entity.behavior), True, NICE_COLOR)
-      behavior_pos  = [name_pos[0], name_pos[1] + self.font.get_height()]
-      self.surface.blit(behavior_text, behavior_pos)
+      behavior_pos  = name_pos + Vector(0, self.font.get_height())
+      self.surface.blit(behavior_text, behavior_pos.as_tuple())
 
   def _render_middle_layer(self, sorted_entities: List[Entity]):
     for entity in sorted_entities:
       border_width = 2
       size = entity.size * self.scale - border_width
-    
-      movement_component: MovementComponent = entity.movement
       
-      entity_pos = [
-        movement_component.position.x * self.scale + self.position.x,
-        movement_component.position.y * self.scale + self.position.y
-      ]
+      entity_pos = entity.movement.position * self.scale + self.position
       
       if entity.is_resource:
         self._render_resource(entity, size, entity_pos)
       else:
         self._render_entity(entity, size, entity_pos)
 
-  def _render_resource(self, entity, size, entity_pos):
+  def _render_resource(self, entity: Entity, size: float, entity_pos: Vector):
     pg.draw.rect(
       self.surface,
       GREEN,
       pg.Rect(
-        entity_pos[0] - size / 2,
-        entity_pos[1] - size / 2,
+        entity_pos.x - size / 2,
+        entity_pos.y - size / 2,
         size,
         size,
       )
@@ -108,26 +97,26 @@ class WorldWidget(Widget):
       self.surface,
       BLACK,
       pg.Rect(
-        entity_pos[0] - size / 2,
-        entity_pos[1] - size / 2,
+        entity_pos.x - size / 2,
+        entity_pos.y - size / 2,
         size,
         size,
       ),
       width=BORDER_WIDTH
     )
           
-  def _render_entity(self, entity, size, entity_pos):
+  def _render_entity(self, entity: Entity, size: float, entity_pos: Vector):
     pg.draw.circle(
       self.surface,
       entity.properties.get('color', NICE_COLOR),
-      entity_pos,
+      entity_pos.as_tuple(),
       size
     )
       
     pg.draw.circle(
       self.surface,
       BLACK,
-      entity_pos,
+      entity_pos.as_tuple(),
       size,
       width=BORDER_WIDTH
     )
