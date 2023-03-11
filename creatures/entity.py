@@ -43,7 +43,7 @@ class Entity(object):
 
   @property
   def name(self) -> str:
-    return self.metadata.get('name', self.id)
+    return self.properties.get('name', self.id)
   
   @property
   def size(self) -> float:
@@ -65,7 +65,7 @@ class Entity(object):
     return f"{self.__class__.__name__}({self.name})"
 
   def __repr__(self) -> str:
-    return f"{self.__class__.__name__}({self.id}, {self.position})"
+    return f"{self.__class__.__name__}({self.id}, {self.movement.position})"
   
   def to_dict(self) -> Dict[str, Any]:
     return {

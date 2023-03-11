@@ -1,13 +1,12 @@
-from importlib.resources import is_resource
 from typing import Any, Callable, Dict, Type
 import yaml
-from creatures.behavior_concrete import Grab, MoveTo, StayStill, Wander, WanderFollow
+from creatures.behavior import Grab, MoveTo, StayStill, Wander, WanderFollow
 from creatures.component import MetaDataComponent, MovementComponent
 
 from creatures.entity import Entity
 from creatures.location import Location, Somewhere
 from creatures.primitives import Vector
-from .behavior_abstract import Behavior, BehaviorComponent
+from .behavior.behavior_abstract import Behavior, BehaviorComponent
 from .world import Frame, World
 
 class ParseException(Exception):
@@ -136,7 +135,7 @@ class Loader(object):
     elif isinstance(location_dict, dict):
       if location_dict.get('type', '') == Entity.__name__:
         target = self._lookup_entity(location_dict.get('location'))
-        location = Location(self._make_location_func(target))
+        location = Location(self._make_location_func(target), target.name)
       else:
         location = Location(self._load_vector(location_dict))
     
@@ -149,7 +148,7 @@ class Loader(object):
       raise ParseException(f"Follow behavior needs an entity id")
     
     target = self._lookup_entity(location_id)
-    location = Location(self._make_location_func(target))
+    location = Location(self._make_location_func(target), target.name)
     
     return MoveTo(None, location, True, self.world)
 

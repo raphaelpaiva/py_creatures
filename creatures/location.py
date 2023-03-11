@@ -3,10 +3,11 @@ from typing import Any, Callable, Dict, Union
 from creatures.primitives import Vector
 
 class Location(object):
-  def __init__(self, location: Union[Callable, Vector]) -> None:
+  def __init__(self, location: Union[Callable, Vector], identifier: str = '') -> None:
     super().__init__()
     self._location = location
     self.type = location.__class__.__name__
+    self.identifier = identifier
 
   def get(self) -> Vector:
     return self._location if self.type == "Vector" else self._location()
@@ -18,7 +19,8 @@ class Location(object):
     }
   
   def __str__(self) -> str:
-    return str(self._location)
+    location_str = self.identifier if callable(self._location) else str(self._location)
+    return str(location_str)
 
 class Somewhere(Location):
   def __init__(self, max_x: float = 100, max_y: float = 100) -> None:

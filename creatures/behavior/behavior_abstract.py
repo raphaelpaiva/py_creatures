@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from typing import Any, Dict
 from creatures.component import Component
 
 from creatures.entity import Entity

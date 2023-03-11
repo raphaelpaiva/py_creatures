@@ -3,7 +3,7 @@ from time import time
 import traceback
 
 import pygame as pg
-from creatures.behavior_system import BehaviorSystem
+from creatures.behavior.behavior_system import BehaviorSystem
 
 from creatures.load import Loader, ParseException
 from creatures.movement_system import MovementSystem

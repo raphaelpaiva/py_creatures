@@ -1,6 +1,6 @@
 
 from typing import List
-from creatures.behavior_abstract import BehaviorComponent
+from .behavior_abstract import BehaviorComponent
 from creatures.entity import Entity
 from creatures.system import System
 
