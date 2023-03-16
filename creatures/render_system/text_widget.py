@@ -15,3 +15,7 @@ class TextWidget(Widget):
   def update(self):
     self.surface.blit(self.text_surface, self.position)
 
+  def set_text(self, new_text):
+    self.text = new_text
+    self.text_surface = self.font.render(self.text, True, NICE_COLOR)
+

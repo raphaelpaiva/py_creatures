@@ -50,16 +50,15 @@ class RenderSystem(System):
       size=world_widget_size
     )
 
-    self.widget = Widget(self.screen, UIPosition(0, 0), UISize(50, 50))
-
+    self.stats_widget = TextWidget(self.screen, 'Framerate: 0000.0 fps', self.font)
+    
     self.widgets.append(self.world_widget)
-    self.widgets.append(self.widget)
-    self.widgets.append(TextWidget(self.screen, 'OPAuygjhvkjvjkhv', self.font))
+    self.widgets.append(self.stats_widget)
 
   def update(self):
     self.screen.fill(WHITE)
     self.stats.frametime = self.clock.tick(self.fps_limit)
-    pg.display.set_caption(f"Py People ({self.stats.framerate:3.1f} fps)")
+    self.stats_widget.set_text(f"Framerate: {self.stats.framerate:4.1f} fps")
     for widget in self.widgets:
       widget.render()
     pg.display.update()
