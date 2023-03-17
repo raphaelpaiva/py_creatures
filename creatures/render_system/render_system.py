@@ -58,7 +58,7 @@ class RenderSystem(System):
   def update(self):
     self.screen.fill(WHITE)
     self.stats.frametime = self.clock.tick(self.fps_limit)
-    self.stats_widget.set_text(f"Debug\nFramerate: {min(1000.0, self.stats.framerate):4.1f} fps")
+    self.stats_widget.set_text(str(self.stats))
     for widget in self.widgets:
       widget.render()
     pg.display.update()
