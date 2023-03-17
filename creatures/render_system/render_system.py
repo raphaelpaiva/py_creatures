@@ -50,7 +50,7 @@ class RenderSystem(System):
       size=world_widget_size
     )
 
-    self.stats_widget = TextWidget(self.screen, 'Framerate: 0000.0 fps', self.font)
+    self.stats_widget = TextWidget(self.screen, 'Framerate: 0000.0 fps\nOpa!', self.font)
     
     self.widgets.append(self.world_widget)
     self.widgets.append(self.stats_widget)
@@ -58,7 +58,7 @@ class RenderSystem(System):
   def update(self):
     self.screen.fill(WHITE)
     self.stats.frametime = self.clock.tick(self.fps_limit)
-    self.stats_widget.set_text(f"Framerate: {self.stats.framerate:4.1f} fps")
+    self.stats_widget.set_text(f"Debug\nFramerate: {min(1000.0, self.stats.framerate):4.1f} fps")
     for widget in self.widgets:
       widget.render()
     pg.display.update()
