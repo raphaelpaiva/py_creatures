@@ -22,8 +22,7 @@ class World(object):
     update_start = time()
     
     for system in self.systems:
-      system.accept(self.entities())
-      system.update()
+      system.update(self.entities())
 
     for entity in [a for a in self.entities() if a.mark_remove]:
       self.remove(entity)

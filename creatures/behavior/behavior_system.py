@@ -7,12 +7,8 @@ from creatures.system import System
 class BehaviorSystem(System):
   def __init__(self) -> None:
     super().__init__()
-    self.processing_list: List[Entity] = []
-  
-  def accept(self, entities: List[Entity]):
-    self.processing_list = entities
 
-  def update(self):
-    for entity in self.processing_list:
+  def update(self, entities: List[Entity]):
+    for entity in entities:
       for component in entity.components.get(BehaviorComponent.__name__, []):
         component.behavior.run()

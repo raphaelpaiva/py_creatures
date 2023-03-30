@@ -1,9 +1,7 @@
-from collections import namedtuple
-
 from creatures.render_system.world_widget import WorldWidget
 from .stats import Stats
 from tkinter import Widget
-from typing import Dict, List
+from typing import List
 import pygame as pg
 
 from creatures.component import MovementComponent
@@ -55,7 +53,7 @@ class RenderSystem(System):
     self.widgets.append(self.world_widget)
     self.widgets.append(self.stats_widget)
 
-  def update(self):
+  def update(self, entities: List[Entity]):
     self.screen.fill(WHITE)
     self.stats.frametime = self.clock.tick(self.fps_limit)
     self.stats_widget.set_text(str(self.stats))

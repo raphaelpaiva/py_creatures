@@ -10,10 +10,6 @@ class MovementSystem(System):
     self.processing_list: List[Entity] = []
     self.world: World = world
   
-  def accept(self, entities: List[Entity]):
-    super().accept(entities)
-    self.processing_list = entities
-  
-  def update(self):
-    for entity in self.processing_list:
+  def update(self, entities: List[Entity]):
+    for entity in entities:
       entity.movement.position += entity.movement.velocity * self.world.dt
