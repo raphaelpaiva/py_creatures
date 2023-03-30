@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict, Type
 import yaml
 from creatures.behavior import Grab, MoveTo, StayStill, Wander, WanderFollow
-from creatures.component import MetaDataComponent, MovementComponent
+from creatures.component import EnergyComponent, MetaDataComponent, MovementComponent
 
 from creatures.entity import Entity
 from creatures.render_system.graphics import SimpleGraphicComponent
@@ -94,6 +94,10 @@ class Loader(object):
     entity.add_component(MovementComponent(position))
     entity.add_component(MetaDataComponent(properties_dict.get('name', entity_id), entity_type))
     entity.add_component(SimpleGraphicComponent(entity))
+    
+    if not entity.is_resource:
+      entity.add_component(EnergyComponent())
+    
     entity.behavior = self._load_behavior(behavior_dict)
 
     return entity

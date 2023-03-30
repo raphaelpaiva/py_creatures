@@ -1,5 +1,5 @@
 from typing import List
-from creatures.component import Component
+from creatures.component import Component, EnergyComponent
 from creatures.entity import Entity
 from creatures.primitives import Vector
 from creatures.render_system.constants import BORDER_WIDTH, NICE_COLOR
@@ -21,5 +21,7 @@ class SimpleGraphicComponent(Component):
   @property
   def text(self) -> List[str]:
     return [
-      self.entity.name, str(self.entity.behavior)
+      self.entity.name,
+      str(self.entity.behavior),
+      str(self.entity.components.get(EnergyComponent.__name__, [''])[0])
     ]

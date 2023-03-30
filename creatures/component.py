@@ -15,3 +15,13 @@ class MovementComponent(Component):
     self.position:     Vector = position
     self.velocity:     Vector = Vector(0, 0)
     self.acceleration: Vector = Vector(0, 0)
+
+class EnergyComponent(Component):
+  def __init__(self, max_energy: float = 100.0, rate: float = 0.5) -> None:
+    super().__init__()
+    self.max_energy = max_energy
+    self.current    = max_energy
+    self.rate       = rate
+  
+  def __str__(self) -> str:
+    return f"{int(self.current)}/{int(self.max_energy)}"

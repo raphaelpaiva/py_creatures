@@ -4,6 +4,7 @@ import traceback
 
 import pygame as pg
 from creatures.behavior.behavior_system import BehaviorSystem
+from creatures.energy_system import EnergySystem
 
 from creatures.load import Loader, ParseException
 from creatures.movement_system import MovementSystem
@@ -25,6 +26,7 @@ def main():
     world: World = frame.world
     world.add_system(BehaviorSystem())
     world.add_system(MovementSystem(world))
+    world.add_system(EnergySystem(world))
     world.add_system(RenderSystem(world))
     
     if benchmark:
