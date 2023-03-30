@@ -23,9 +23,9 @@ def main():
   try:
     frame = Loader(filename).load()
     world: World = frame.world
-    world.add_system(RenderSystem(world))
     world.add_system(BehaviorSystem())
     world.add_system(MovementSystem(world))
+    world.add_system(RenderSystem(world))
     
     if benchmark:
       benchmark_loop(world)
