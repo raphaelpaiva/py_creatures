@@ -9,10 +9,12 @@ class Stats(object):
     self.framerate: float   = 0
   
   def get_stats_dict(self) -> Dict[str, str]:
+    framerate = int(self.framerate)
+    framerate = framerate if framerate < 1000 else 'inf'
     return {
       'FPS Limit: ': str(self.fps_limit),
-      'Frame Rate: ': f"{self.framerate:4.1f}Hz",
-      'Frame time: ': f"{self.frametime:.5f}ms",
+      'Frame Rate: ': f"{framerate}Hz",
+      'Frame time: ': f"{self.frametime:.2f}ms",
     }
   
   def __str__(self) -> str:
