@@ -1,5 +1,5 @@
 from typing import List
-from creatures.component import Component, EnergyComponent
+from creatures.component.component import Component, EnergyComponent
 from creatures.entity import Entity
 from creatures.primitives import Vector
 from creatures.render_system.constants import BORDER_WIDTH, NICE_COLOR

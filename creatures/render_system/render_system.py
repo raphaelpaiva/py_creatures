@@ -4,7 +4,7 @@ from tkinter import Widget
 from typing import List
 import pygame as pg
 
-from creatures.component import MovementComponent
+from creatures.component.component import MovementComponent
 from .text_widget import TextWidget
 from .constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, FPS_LIMIT, GREEN, NICE_COLOR, ORIGIN, SCREEN_HEIGHT, SCREEN_WIDTH, WHITE, ZOOM_LEVEL, UIColor, UIPosition, UISize
 from .widget import Widget

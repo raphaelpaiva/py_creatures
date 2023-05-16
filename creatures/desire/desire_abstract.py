@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from creatures.component import Component
+from creatures.component.component import Component
 
 from creatures.entity import Entity
 

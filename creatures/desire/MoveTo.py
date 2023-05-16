@@ -3,7 +3,7 @@ from typing import Any, Dict
 from creatures.action.action import ActionComponent, Move
 from creatures.desire.desire_abstract import Desire
 from creatures.entity import Entity
-from creatures.location import Location
+from creatures.location.location import Location
 from creatures.primitives import Vector
 from creatures.world import World
 

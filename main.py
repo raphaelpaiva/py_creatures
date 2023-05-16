@@ -5,10 +5,10 @@ import traceback
 import pygame as pg
 from creatures.action.action import ActionSystem
 from creatures.desire.desire_system import DesireSystem
-from creatures.energy_system import EnergySystem
+from creatures.energy import EnergySystem
 
-from creatures.load import Loader, ParseException
-from creatures.movement_system import MovementSystem
+from creatures.io.load import Loader, ParseException
+from creatures.movement import MovementSystem
 from creatures.render_system import RenderSystem
 from creatures.world import World
 

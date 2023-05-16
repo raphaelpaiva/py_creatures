@@ -1,9 +1,8 @@
 from __future__ import annotations
 from math import sqrt
 from typing import Any, Dict, List
-from creatures.location import Location, Somewhere
 from creatures.primitives import Vector
-from .component import Component, MetaDataComponent, MovementComponent
+from creatures.component import Component, MetaDataComponent, MovementComponent
 
 _ENTITY_IDS: int = -1
 DEFAULT_MOVEMENT_COMPONENT = [MovementComponent()]

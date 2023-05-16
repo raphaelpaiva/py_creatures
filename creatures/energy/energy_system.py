@@ -1,8 +1,8 @@
 from typing import List
-from creatures.component import EnergyComponent
+from creatures.component.component import EnergyComponent
 from creatures.entity import Entity
 from creatures.system import System
-from creatures.component import EnergyComponent
+from creatures.component.component import EnergyComponent
 from creatures.world import World
 
 class EnergySystem(System):

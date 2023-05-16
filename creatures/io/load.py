@@ -1,14 +1,14 @@
 from typing import Any, Callable, Dict, Type
 import yaml
 from creatures.desire import Grab, MoveTo, StayStill, Wander, WanderFollow
-from creatures.component import EnergyComponent, MetaDataComponent, MovementComponent
+from creatures.component.component import EnergyComponent, MetaDataComponent, MovementComponent
 
 from creatures.entity import Entity
 from creatures.render_system.graphics import SimpleGraphicComponent
-from creatures.location import Location, Somewhere
+from creatures.location.location import Location, Somewhere
 from creatures.primitives import Vector
-from .desire.desire_abstract import Desire, DesireComponent
-from .world import Frame, World
+from ..desire.desire_abstract import Desire, DesireComponent
+from ..world import Frame, World
 
 class ParseException(Exception):
   def __init__(self, msg: str, *args: object) -> None:
