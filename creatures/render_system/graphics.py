@@ -22,6 +22,6 @@ class SimpleGraphicComponent(Component):
   def text(self) -> List[str]:
     return [
       self.entity.name,
-      str(self.entity.behavior),
+      str(self.entity.desire),
       str(self.entity.components.get(EnergyComponent.__name__, [''])[0])
     ]

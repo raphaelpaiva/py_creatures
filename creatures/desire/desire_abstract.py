@@ -3,7 +3,7 @@ from creatures.component import Component
 
 from creatures.entity import Entity
 
-class Behavior(object):
+class Desire(object):
   def __init__(self, entity: Entity=None) -> None:
     super().__init__()
     self.entity = entity
@@ -32,7 +32,7 @@ class Behavior(object):
   def __str__(self) -> str:
     return self.type
 
-class BehaviorComponent(Component):
-  def __init__(self, behavior: Behavior) -> None:
+class DesireComponent(Component):
+  def __init__(self, desire: Desire) -> None:
     super().__init__()
-    self.behavior = behavior
+    self.desire = desire

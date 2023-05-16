@@ -1,25 +1,25 @@
 from typing import Any, Dict
-from creatures.behavior.MoveTo import MoveTo
-from creatures.behavior.behavior_abstract import Behavior
+from creatures.desire.MoveTo import MoveTo
+from creatures.desire.desire_abstract import Desire
 from creatures.entity import Entity
 from creatures.location import Location
 from creatures.primitives import Vector
 
 
-class Grab(Behavior):
+class Grab(Desire):
   def __init__(self, entity: Entity, resource: Entity, world=None) -> None:
     super().__init__(entity)
     self.resource = resource
     self.world
-    self.underlying_behavior = MoveTo(self.entity, Location(resource), world=self.world)
+    self.underlying_desire = MoveTo(self.entity, Location(resource), world=self.world)
   
   def run(self):
-    if self.underlying_behavior.satisfied():
+    if self.underlying_desire.satisfied():
       self.entity.inventory.append(self.resource)
       self.resource.mark_remove = True
-      self.entity.behavior = MoveTo(self.entity, Location(Vector(100, 0)), world=self.world)
+      self.entity.desire = MoveTo(self.entity, Location(Vector(100, 0)), world=self.world)
     else:
-      self.underlying_behavior.run()
+      self.underlying_desire.run()
   
   def satisfied(self):
     return False
@@ -31,7 +31,7 @@ class Grab(Behavior):
   @entity.setter
   def entity(self, entity: Entity) -> Entity:
     super().entity = entity
-    self.underlying_behavior.entity = entity
+    self.underlying_desire.entity = entity
   
   def to_dict(self) -> Dict[str, Any]:
     return {

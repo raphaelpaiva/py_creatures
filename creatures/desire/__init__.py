@@ -1,5 +1,5 @@
-from .behavior_abstract import Behavior, BehaviorComponent
-from .behavior_system import BehaviorSystem
+from .desire_abstract import Desire, DesireComponent
+from .desire_system import DesireSystem
 from .Grab import Grab
 from .MoveRelative import MoveRelative
 from .MoveTo import MoveTo

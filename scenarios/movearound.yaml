@@ -20,14 +20,14 @@ frame:
           color: black
           speed: 0.3
           size: 15
-        behavior:
+        desire:
           type: Follow
           entity: '003'
       - id: '004'
         properties:
           color: yellow
           speed: 0.5
-        behavior:
+        desire:
           type: Follow
           entity: 'agent'
       - id: '005'

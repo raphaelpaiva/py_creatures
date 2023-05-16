@@ -1,12 +1,12 @@
-from creatures.behavior.MoveTo import MoveTo
-from creatures.behavior.behavior_abstract import Behavior
+from creatures.desire.MoveTo import MoveTo
+from creatures.desire.desire_abstract import Desire
 from creatures.entity import Entity
 from creatures.location import Location, Somewhere
 from creatures.primitives import Vector
 from creatures.world import World
 
 
-class Wander(Behavior):
+class Wander(Desire):
   def __init__(self, entity: Entity, max_distance: float = 30.0, world: World = None) -> None:
     super().__init__(entity)
     self.max_distance = max_distance

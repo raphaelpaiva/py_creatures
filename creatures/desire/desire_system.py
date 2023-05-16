@@ -1,14 +1,14 @@
 
 from typing import List
-from .behavior_abstract import BehaviorComponent
+from .desire_abstract import DesireComponent
 from creatures.entity import Entity
 from creatures.system import System
 
-class BehaviorSystem(System):
+class DesireSystem(System):
   def __init__(self) -> None:
     super().__init__()
 
   def update(self, entities: List[Entity]):
     for entity in entities:
-      for component in entity.components.get(BehaviorComponent.__name__, []):
-        component.behavior.run()
+      for component in entity.components.get(DesireComponent.__name__, []):
+        component.desire.run()

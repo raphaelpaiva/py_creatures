@@ -1,8 +1,7 @@
-from creatures.behavior.MoveTo import MoveTo
+from creatures.desire.MoveTo import MoveTo
 from creatures.entity import Entity
 from creatures.primitives import Vector
 from creatures.world import World
-
 
 class MoveRelative(MoveTo):
   def __init__(self, entity: Entity, location: Vector, never_satisfied=False, world: World = None) -> None:

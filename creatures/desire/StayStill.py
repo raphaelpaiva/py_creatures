@@ -1,9 +1,9 @@
 from typing import Any, Dict
-from creatures.behavior.behavior_abstract import Behavior
+from creatures.desire.desire_abstract import Desire
 from creatures.entity import Entity
 
 
-class StayStill(Behavior):
+class StayStill(Desire):
   def __init__(self, entity: Entity) -> None:
     super().__init__(entity)
   

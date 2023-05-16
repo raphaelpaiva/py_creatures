@@ -3,7 +3,8 @@ from time import time
 import traceback
 
 import pygame as pg
-from creatures.behavior.behavior_system import BehaviorSystem
+from creatures.action.action import ActionSystem
+from creatures.desire.desire_system import DesireSystem
 from creatures.energy_system import EnergySystem
 
 from creatures.load import Loader, ParseException
@@ -24,7 +25,8 @@ def main():
   try:
     frame = Loader(filename).load()
     world: World = frame.world
-    world.add_system(BehaviorSystem())
+    world.add_system(DesireSystem())
+    world.add_system(ActionSystem())
     world.add_system(MovementSystem(world))
     world.add_system(EnergySystem(world))
     world.add_system(RenderSystem(world))

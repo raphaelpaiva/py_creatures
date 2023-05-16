@@ -11,7 +11,7 @@ frame:
         position: {x: 75, y: 80}
       - id: Ze
         position: {x: 50, y: 50}
-        behavior:
+        desire:
           type: MoveTo
           location: maria
           never_satisfied: yes
