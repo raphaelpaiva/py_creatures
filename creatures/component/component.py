@@ -17,7 +17,7 @@ class MovementComponent(Component):
     self.acceleration: Vector = Vector(0, 0)
 
 class EnergyComponent(Component):
-  def __init__(self, max_energy: float = 100.0, rate: float = 0.0) -> None:
+  def __init__(self, max_energy: float = 100.0, rate: float = 0.01) -> None:
     super().__init__()
     self.max_energy = max_energy
     self.current    = max_energy

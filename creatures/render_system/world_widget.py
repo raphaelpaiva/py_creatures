@@ -126,4 +126,14 @@ class WorldWidget(Widget):
           int(graphic_size),
           BLACK
         )
+      
+      if 'grab_radius' in graphic.entity.properties:
+        graphic_size = graphic.entity.properties['grab_radius'] * self.scale
+        gfx.aacircle(
+          self.surface,
+          int(graphic_pos.x),
+          int(graphic_pos.y),
+          int(graphic_size),
+          GREEN
+        )
         
