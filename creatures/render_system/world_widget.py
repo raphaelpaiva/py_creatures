@@ -7,7 +7,7 @@ from creatures.render_system.graphics import SimpleGraphicComponent
 from creatures.primitives import Vector
 
 from creatures.render_system.aux_types import UIColor, UIPosition, UISize
-from creatures.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, GREEN, NICE_COLOR, ORIGIN
+from creatures.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, GREEN, NICE_COLOR, ORIGIN, WHITE
 from creatures.render_system.widget import Widget
 from creatures.world import World
 
@@ -49,7 +49,7 @@ class WorldWidget(Widget):
     }
   
   def update(self):
-    graphics = [e.components[SimpleGraphicComponent.__name__][0] for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
+    graphics = [e.get_component(SimpleGraphicComponent) for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
     self._render_bottom_layer(graphics)
     self._render_middle_layer(graphics)
     self._render_top_layer(graphics)
@@ -67,20 +67,34 @@ class WorldWidget(Widget):
         text_position = graphic_pos + text_offset
         self.surface.blit(rendered, text_position.as_tuple())
         text_offset += Vector(0, self.font.get_height())
+      
+      gfx.aacircle(
+        self.surface,
+        pg.mouse.get_pos()[0],
+        pg.mouse.get_pos()[1],
+        5,
+        GREEN
+      )
 
   def _render_middle_layer(self, graphics: List[SimpleGraphicComponent]):
+    mouse_position = Vector(*pg.mouse.get_pos())
+    
     for graphic in graphics:
       graphic_size = graphic.size * self.scale - graphic.border_width
       graphic_pos = graphic.position * self.scale + self.position
       graphic_color = pg.colordict.THECOLORS.get(graphic.color) if isinstance(graphic.color, str) else graphic.color
 
       if graphic.shape == 'circle':
+        col = graphic_color
+        if ( (graphic_pos - mouse_position).size() <= graphic_size ):
+          col = WHITE
+        
         gfx.filled_circle(
           self.surface,
           int(graphic_pos.x),
           int(graphic_pos.y),
           int(graphic_size),
-          graphic_color
+          col
         )
         gfx.aacircle(
           self.surface,

@@ -37,7 +37,7 @@ class Grab(Action):
   
   def run(self) -> None:
     if self.target.is_resource:
-      energy_component = self.entity.components.get(EnergyComponent.__name__)[-1]
+      energy_component = self.entity.get_components(EnergyComponent.__name__)
       energy_component.current = min(100, energy_component.current + 50)
       self.target.mark_remove = True
 
@@ -53,8 +53,6 @@ class ActionSystem(System):
   
   def update(self, entities: List[Entity]):
     for entity in entities:
-      actionComponents: List[ActionComponent] = entity.components.get(ActionComponent.__name__)
-      if actionComponents:
-        action = actionComponents[-1].action
-        if action:
-          action.run()
+      action_component: ActionComponent = entity.get_component(ActionComponent.__name__)
+      if action_component:
+        action_component.action.run()

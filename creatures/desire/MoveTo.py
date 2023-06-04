@@ -17,12 +17,11 @@ class MoveTo(Desire):
   
   def run(self):
     direction = Vector.from_points(self.entity.movement.position, self.location.get()).unit()
+    action_component = self.entity.get_component(ActionComponent.__name__)
     
-    if not ActionComponent.__name__ in self.entity.components:
+    if not action_component:
       action_component = ActionComponent()
       self.entity.add_component(action_component)
-    else:
-      action_component = self.entity.components[ActionComponent.__name__][0]
     
     action_component.action = Move(self.entity, direction)
 

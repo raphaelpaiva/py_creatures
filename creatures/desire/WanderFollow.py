@@ -30,9 +30,9 @@ class WanderFollow(Desire):
       else:
         grab_radius = self.entity.properties.get('grab_radius', 2.0)
         if distance <= grab_radius:
-          action_component = self.entity.components.get(ActionComponent.__name__)
+          action_component = self.entity.get_component(ActionComponent.__name__)
           if action_component:
-            action_component[-1].action = Grab(self.entity, self.target)
+            action_component.action = Grab(self.entity, self.target)
             self.desire = Wander(self.entity, world=self.world)
             self.target = None
             return

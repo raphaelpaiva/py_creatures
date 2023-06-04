@@ -23,5 +23,5 @@ class SimpleGraphicComponent(Component):
     return [
       self.entity.name,
       str(self.entity.desire),
-      str(self.entity.components.get(EnergyComponent.__name__, [''])[0])
+      str(self.entity.get_component(EnergyComponent.__name__))
     ]

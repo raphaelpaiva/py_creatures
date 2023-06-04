@@ -1,5 +1,6 @@
 from __future__ import annotations
 from math import sqrt
+from pyclbr import Class
 from typing import Any, Dict, List
 from creatures.primitives import Vector
 from creatures.component import Component, MetaDataComponent, MovementComponent
@@ -19,22 +20,26 @@ class Entity(object):
     self.mark_remove: bool = False
     self.properties: Dict[str, Any] = {}
     self.type = self.__class__.__name__
-    self.components: Dict[str, List[Component]] = {}
+    self._components: Dict[str, Component] = {}
 
   def add_component(self, component: Component):
-    component_type_name = component.__class__.__name__
-    if component_type_name in self.components:
-      self.components[component_type_name].append(component)
-    else:
-      self.components[component_type_name] = [component]
+    component_type_name = component.__class__.__qualname__
+    self._components[component_type_name] = component
+  
+  def get_component(self, component_id: str | type) -> Component | None:
+    name = component_id
+    if (isinstance(component_id, type)):
+      name = component_id.__name__
+    
+    return self._components.get(name, None)
   
   @property
   def metadata(self) -> MetaDataComponent:
-    return self.components.get(MetaDataComponent.__name__, DEFAULT_METADATA_COMPONENT)[0]
+    return self._components.get(MetaDataComponent.__name__, DEFAULT_METADATA_COMPONENT)
   
   @property
   def movement(self) -> MovementComponent:
-    return self.components.get(MovementComponent.__name__, DEFAULT_MOVEMENT_COMPONENT)[0]
+    return self._components.get(MovementComponent.__name__, DEFAULT_MOVEMENT_COMPONENT)
   
   @property
   def is_resource(self) -> bool:
