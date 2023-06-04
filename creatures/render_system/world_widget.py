@@ -42,6 +42,7 @@ class WorldWidget(Widget):
     self.bottom_layer = pg.Surface(size=self.surface.get_size())
     self.world_layer  = pg.Surface(size=self.surface.get_size())
     self.top_layer    = pg.Surface(size=self.surface.get_size())
+    self.hover        = None
     self.layers = {
       'bottom': self.bottom_layer,
       'world': self.world_layer,
@@ -50,31 +51,55 @@ class WorldWidget(Widget):
   
   def update(self):
     graphics = [e.get_component(SimpleGraphicComponent) for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
+    self._set_hover(graphics)
     self._render_bottom_layer(graphics)
     self._render_middle_layer(graphics)
     self._render_top_layer(graphics)
 
+  def _set_hover(self, graphics: List[SimpleGraphicComponent]):
+    mouse_position = Vector(*pg.mouse.get_pos())
+    
+    for graphic in graphics:
+      graphic_size = graphic.size * self.scale - graphic.border_width
+      graphic_pos = graphic.position * self.scale + self.position
+      if ( (graphic_pos - mouse_position).size() <= graphic_size ):
+        self.hover = graphic
+        return
+    
+    self.hover = None
+
   def _render_top_layer(self, graphics: List[SimpleGraphicComponent]):
+    mouse_position = Vector(*pg.mouse.get_pos())
+    
     for graphic in graphics:
       size = graphic.size * self.scale - graphic.border_width
-      
       graphic_pos = graphic.position * self.scale + self.position
       
-      text_offset = Vector(5 + size, -1 * size - 5)
+      if graphic.text:
+        text_offset = Vector(5 + size, -1 * size - 5)
+        text_offset = self._render_text(graphic_pos, text_offset, graphic.text[0])
       
-      for text in graphic.text:
-        rendered = self.font.render(text, True, NICE_COLOR)
-        text_position = graphic_pos + text_offset
-        self.surface.blit(rendered, text_position.as_tuple())
-        text_offset += Vector(0, self.font.get_height())
+        if self.hover is graphic:
+          for text in graphic.text[1::]:
+            text_offset = self._render_text(graphic_pos, text_offset, text)
       
-      gfx.aacircle(
-        self.surface,
-        pg.mouse.get_pos()[0],
-        pg.mouse.get_pos()[1],
-        5,
-        GREEN
-      )
+    cursor_size = 5 * self.scale
+    mouse_x = mouse_position.x
+    mouse_y = mouse_position.y
+    gfx.aacircle(
+      self.surface,
+      int(mouse_x),
+      int(mouse_y),
+      int(cursor_size),
+      GREEN
+    )
+
+  def _render_text(self, graphic_pos, text_offset, text):
+    rendered = self.font.render(text, True, NICE_COLOR)
+    text_position = graphic_pos + text_offset
+    self.surface.blit(rendered, text_position.as_tuple())
+    text_offset += Vector(0, self.font.get_height())
+    return text_offset
 
   def _render_middle_layer(self, graphics: List[SimpleGraphicComponent]):
     mouse_position = Vector(*pg.mouse.get_pos())
@@ -82,19 +107,19 @@ class WorldWidget(Widget):
     for graphic in graphics:
       graphic_size = graphic.size * self.scale - graphic.border_width
       graphic_pos = graphic.position * self.scale + self.position
-      graphic_color = pg.colordict.THECOLORS.get(graphic.color) if isinstance(graphic.color, str) else graphic.color
+
+      if self.hover is graphic:
+        graphic_color = WHITE
+      else: 
+        graphic_color = pg.colordict.THECOLORS.get(graphic.color) if isinstance(graphic.color, str) else graphic.color
 
       if graphic.shape == 'circle':
-        col = graphic_color
-        if ( (graphic_pos - mouse_position).size() <= graphic_size ):
-          col = WHITE
-        
         gfx.filled_circle(
           self.surface,
           int(graphic_pos.x),
           int(graphic_pos.y),
           int(graphic_size),
-          col
+          graphic_color
         )
         gfx.aacircle(
           self.surface,
