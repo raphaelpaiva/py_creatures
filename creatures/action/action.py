@@ -27,7 +27,7 @@ class Move(Action):
   
   @property
   def energy_cost(self):
-    return self._energy_cost
+    return self._energy_cost * self.entity.properties.get('speed', 1.0)
 
 class Grab(Action):
   def __init__(self, entity: Entity, target: Entity) -> None:
@@ -53,6 +53,15 @@ class ActionSystem(System):
   
   def update(self, entities: List[Entity]):
     for entity in entities:
-      action_component: ActionComponent = entity.get_component(ActionComponent.__name__)
-      if action_component:
-        action_component.action.run()
+      action_component: ActionComponent = entity.get_component(ActionComponent)
+      energy_component: EnergyComponent = entity.get_component(EnergyComponent)
+
+      if action_component and action_component.action:
+        if energy_component:
+          if energy_component.current >= action_component.action.energy_cost:
+            action_component.action.run()
+            energy_component.current -= action_component.action.energy_cost
+          else:
+            action_component.action = None
+        else:
+          action_component.action.run()
