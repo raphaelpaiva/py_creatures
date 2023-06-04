@@ -37,7 +37,7 @@ class Grab(Action):
   
   def run(self) -> None:
     if self.target.is_resource:
-      energy_component = self.entity.get_components(EnergyComponent.__name__)
+      energy_component = self.entity.get_component(EnergyComponent)
       energy_component.current = min(100, energy_component.current + 50)
       self.target.mark_remove = True
 
