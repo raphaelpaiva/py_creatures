@@ -3,6 +3,7 @@ from .stats import Stats
 from tkinter import Widget
 from typing import List
 import pygame as pg
+import sys
 
 from creatures.component.component import MovementComponent
 from .text_widget import TextWidget
@@ -54,9 +55,16 @@ class RenderSystem(System):
     self.widgets.append(self.stats_widget)
 
   def update(self, entities: List[Entity]):
+    self.handle_events()
     self.screen.fill(WHITE)
     self.stats.frametime = self.clock.tick(self.fps_limit)
     self.stats_widget.set_text(str(self.stats))
     for widget in self.widgets:
       widget.render()
     pg.display.update()
+
+  def handle_events(self):
+    for event in pg.event.get():
+      if event.type == pg.QUIT:
+        pg.quit()
+        sys.exit()

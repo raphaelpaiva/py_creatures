@@ -2,7 +2,6 @@ import sys
 from time import time
 import traceback
 
-import pygame as pg
 from creatures.action.action import ActionSystem
 from creatures.desire.desire_system import DesireSystem
 from creatures.energy import EnergySystem
@@ -45,7 +44,6 @@ def main():
 
 def infinite_loop(world: World):
   while True:
-    handle_events()
     world.update()
 
 def benchmark_loop(world):
@@ -55,17 +53,11 @@ def benchmark_loop(world):
     progress = 100 * frame / BENCHMARK_FRAME_NUMBER
     print(progress)
     
-    handle_events()
     world.update()
 
 def time_ms():
     return time() / 1000 
 
-def handle_events():
-  for event in pg.event.get():
-    if event.type == pg.QUIT:
-      pg.quit()
-      sys.exit()
 
 if __name__ == '__main__':
   main()
