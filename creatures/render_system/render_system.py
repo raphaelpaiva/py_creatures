@@ -6,6 +6,7 @@ import pygame as pg
 import pygame.gfxdraw as gfx
 
 from creatures.entity import Entity
+from creatures.render_system.mouse_handler import Mouse
 from creatures.render_system.world_widget import WorldWidget
 from creatures.system import System
 from creatures.world import World
@@ -16,6 +17,7 @@ from .stats import Stats
 from .text_widget import TextWidget
 from .widget import Widget
 
+mouse: Mouse = Mouse()
 
 class RenderSystem(System):
   def __init__(self, world: World) -> None:
@@ -25,6 +27,7 @@ class RenderSystem(System):
     self.screen_size = (SCREEN_WIDTH, SCREEN_HEIGHT)
     self.fps_limit = FPS_LIMIT
     self.widgets: List[Widget] = []
+    self.mouse = mouse
     
     pg.init()
     self.screen = pg.display.set_mode(self.screen_size)
@@ -57,6 +60,7 @@ class RenderSystem(System):
     self.widgets.append(self.stats_widget)
 
   def update(self, entities: List[Entity]):
+    self.mouse.update_position()
     self.handle_events()
     self.screen.fill(WHITE)
     self.stats.frametime = self.clock.tick(self.fps_limit)
@@ -69,21 +73,25 @@ class RenderSystem(System):
     pg.display.update()
 
   def draw_cursor(self):
-    mouse_position = UIPosition(*pg.mouse.get_pos())
     cursor_size = 5 * self.scale
-    mouse_x = mouse_position.x
-    mouse_y = mouse_position.y
     
     gfx.aacircle(
       self.screen,
-      int(mouse_x),
-      int(mouse_y),
+      self.mouse.position.x,
+      self.mouse.position.y,
       int(cursor_size),
       GREEN
     )
 
   def handle_events(self):
     for event in pg.event.get():
+      e: pg.event.Event = event
+      if e.type == pg.MOUSEBUTTONDOWN:
+        for widget in self.widgets:
+          widget.on_mouse_down()
+      if e.type == pg.MOUSEBUTTONUP:
+        for widget in self.widgets:
+          widget.on_mouse_up()
       if event.type == pg.QUIT:
         pg.quit()
         sys.exit()

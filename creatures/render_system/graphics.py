@@ -13,7 +13,11 @@ class SimpleGraphicComponent(Component):
     self.color            = self.entity.properties.get('color', 'blue')
     self.size             = self.entity.properties.get('size', 5)
     self.border_width     = BORDER_WIDTH
+    self.selected         = False
   
+  def toggle_selected(self):
+    self.selected = not self.selected
+
   @property
   def position(self) -> Vector:
     return self.entity.movement.position

@@ -1,8 +1,7 @@
 from typing import List, Set
 import pygame as pg
 import pygame.gfxdraw as gfx
-from creatures.component.component import MovementComponent
-from creatures.entity import Entity
+from . import render_system
 from creatures.render_system.graphics import SimpleGraphicComponent
 from creatures.primitives import Vector
 
@@ -49,7 +48,6 @@ class WorldWidget(Widget):
       'top': self.top_layer
     }
     self.graphics: List[SimpleGraphicComponent] = [e.get_component(SimpleGraphicComponent) for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
-    self.selected_entity_ids: Set[str] = set()
   
   def update(self):
     self.graphics = [e.get_component(SimpleGraphicComponent) for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
@@ -60,17 +58,22 @@ class WorldWidget(Widget):
 
   def on_hover(self):
     self._set_hover()
+  
+  def on_mouse_up(self):
+    if self.hover:
+      self.hover.toggle_selected()
 
   def _set_hover(self):
-    mouse_position = Vector(*pg.mouse.get_pos()) - self.position
+    mouse_position = render_system.mouse.position - self.position
     
     for graphic in self.graphics:
       graphic_size = graphic.size * self.scale - graphic.border_width
       graphic_pos = graphic.position * self.scale + self.position
       if ( (graphic_pos - mouse_position).size() <= graphic_size ):
         self.hover = graphic
-        if pg.mouse.get_pressed()[0]:
-          self.selected_entity_ids.add(graphic.entity.id)
+        if render_system.mouse.is_up:
+          graphic.toggle_selected()
+
         return
     
     self.hover = None
@@ -84,7 +87,7 @@ class WorldWidget(Widget):
         text_offset = Vector(5 + size, -1 * size - 5)
         text_offset = self._render_text(graphic_pos, text_offset, graphic.text[0])
       
-        if self.hover is graphic or graphic.entity.id in self.selected_entity_ids:
+        if self.hover is graphic or graphic.selected:
           for text in graphic.text[1::]:
             text_offset = self._render_text(graphic_pos, text_offset, text)
 
@@ -100,7 +103,7 @@ class WorldWidget(Widget):
       graphic_size = graphic.size * self.scale - graphic.border_width
       graphic_pos = graphic.position * self.scale + self.position
 
-      if self.hover is graphic or graphic.entity.id in self.selected_entity_ids:
+      if self.hover is graphic or graphic.selected:
         graphic_color = WHITE
       else: 
         graphic_color = pg.colordict.THECOLORS.get(graphic.color) if isinstance(graphic.color, str) else graphic.color

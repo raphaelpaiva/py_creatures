@@ -1,4 +1,5 @@
 import pygame as pg
+from . import render_system
 from creatures.render_system.aux_types import UIColor, UIPosition, UISize
 from creatures.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, ORIGIN, WHITE
 
@@ -43,12 +44,14 @@ class Widget(object):
     self.surface.fill(self.background_color)
 
     self.update()
-    if self.border_rect.collidepoint(pg.mouse.get_pos()):
+    if self.border_rect.collidepoint((render_system.mouse.position.x, render_system.mouse.position.y)):
       self.on_hover()
 
     self.parent.blit(self.surface, self.position)
 
   def update(self): pass
+  def on_mouse_up(self): pass
+  def on_mouse_down(self): pass
   def on_hover(self):
     pg.draw.rect(
       self.parent,
