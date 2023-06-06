@@ -1,18 +1,20 @@
-from creatures.render_system.world_widget import WorldWidget
-from .stats import Stats
+import sys
 from tkinter import Widget
 from typing import List
+
 import pygame as pg
-import sys
+import pygame.gfxdraw as gfx
 
-from creatures.component.component import MovementComponent
-from .text_widget import TextWidget
-from .constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, FPS_LIMIT, GREEN, NICE_COLOR, ORIGIN, SCREEN_HEIGHT, SCREEN_WIDTH, WHITE, ZOOM_LEVEL, UIColor, UIPosition, UISize
-from .widget import Widget
-
-from creatures.world import World
 from creatures.entity import Entity
+from creatures.render_system.world_widget import WorldWidget
 from creatures.system import System
+from creatures.world import World
+
+from .constants import (FPS_LIMIT, GREEN, SCREEN_HEIGHT, SCREEN_WIDTH, WHITE,
+                        ZOOM_LEVEL, UIPosition, UISize)
+from .stats import Stats
+from .text_widget import TextWidget
+from .widget import Widget
 
 
 class RenderSystem(System):
@@ -59,9 +61,26 @@ class RenderSystem(System):
     self.screen.fill(WHITE)
     self.stats.frametime = self.clock.tick(self.fps_limit)
     self.stats_widget.set_text(str(self.stats))
+
     for widget in self.widgets:
       widget.render()
+    
+    self.draw_cursor()
     pg.display.update()
+
+  def draw_cursor(self):
+    mouse_position = UIPosition(*pg.mouse.get_pos())
+    cursor_size = 5 * self.scale
+    mouse_x = mouse_position.x
+    mouse_y = mouse_position.y
+    
+    gfx.aacircle(
+      self.screen,
+      int(mouse_x),
+      int(mouse_y),
+      int(cursor_size),
+      GREEN
+    )
 
   def handle_events(self):
     for event in pg.event.get():

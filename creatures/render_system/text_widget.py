@@ -1,7 +1,7 @@
 from typing import List
 import pygame as pg
 from creatures.render_system.aux_types import UIColor, UIPosition, UISize
-from creatures.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, NICE_COLOR, ORIGIN
+from creatures.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, NICE_COLOR, ORIGIN, WHITE
 from creatures.render_system.widget import Widget
 from creatures.primitives import Vector
 
@@ -30,6 +30,7 @@ class TextWidget(Widget):
   
   def update(self):
     text_surface_position = Vector(*self.position)
+    
     for index, text_surface in enumerate(self.text_surfaces):
       text_surface_position += Vector(0, index * self.font.get_height())
       self.surface.blit(text_surface, text_surface_position.as_tuple())

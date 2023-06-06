@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set
 import pygame as pg
 import pygame.gfxdraw as gfx
 from creatures.component.component import MovementComponent
@@ -48,30 +48,35 @@ class WorldWidget(Widget):
       'world': self.world_layer,
       'top': self.top_layer
     }
+    self.graphics: List[SimpleGraphicComponent] = [e.get_component(SimpleGraphicComponent) for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
+    self.selected_entity_ids: Set[str] = set()
   
   def update(self):
-    graphics = [e.get_component(SimpleGraphicComponent) for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
-    self._set_hover(graphics)
-    self._render_bottom_layer(graphics)
-    self._render_middle_layer(graphics)
-    self._render_top_layer(graphics)
+    self.graphics = [e.get_component(SimpleGraphicComponent) for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
+    self._set_hover()
+    self._render_bottom_layer()
+    self._render_middle_layer()
+    self._render_top_layer()
 
-  def _set_hover(self, graphics: List[SimpleGraphicComponent]):
-    mouse_position = Vector(*pg.mouse.get_pos())
+  def on_hover(self):
+    self._set_hover()
+
+  def _set_hover(self):
+    mouse_position = Vector(*pg.mouse.get_pos()) - self.position
     
-    for graphic in graphics:
+    for graphic in self.graphics:
       graphic_size = graphic.size * self.scale - graphic.border_width
       graphic_pos = graphic.position * self.scale + self.position
       if ( (graphic_pos - mouse_position).size() <= graphic_size ):
         self.hover = graphic
+        if pg.mouse.get_pressed()[0]:
+          self.selected_entity_ids.add(graphic.entity.id)
         return
     
     self.hover = None
 
-  def _render_top_layer(self, graphics: List[SimpleGraphicComponent]):
-    mouse_position = Vector(*pg.mouse.get_pos())
-    
-    for graphic in graphics:
+  def _render_top_layer(self):
+    for graphic in self.graphics:
       size = graphic.size * self.scale - graphic.border_width
       graphic_pos = graphic.position * self.scale + self.position
       
@@ -79,20 +84,9 @@ class WorldWidget(Widget):
         text_offset = Vector(5 + size, -1 * size - 5)
         text_offset = self._render_text(graphic_pos, text_offset, graphic.text[0])
       
-        if self.hover is graphic:
+        if self.hover is graphic or graphic.entity.id in self.selected_entity_ids:
           for text in graphic.text[1::]:
             text_offset = self._render_text(graphic_pos, text_offset, text)
-      
-    cursor_size = 5 * self.scale
-    mouse_x = mouse_position.x
-    mouse_y = mouse_position.y
-    gfx.aacircle(
-      self.surface,
-      int(mouse_x),
-      int(mouse_y),
-      int(cursor_size),
-      GREEN
-    )
 
   def _render_text(self, graphic_pos, text_offset, text):
     rendered = self.font.render(text, True, NICE_COLOR)
@@ -101,14 +95,12 @@ class WorldWidget(Widget):
     text_offset += Vector(0, self.font.get_height())
     return text_offset
 
-  def _render_middle_layer(self, graphics: List[SimpleGraphicComponent]):
-    mouse_position = Vector(*pg.mouse.get_pos())
-    
-    for graphic in graphics:
+  def _render_middle_layer(self):
+    for graphic in self.graphics:
       graphic_size = graphic.size * self.scale - graphic.border_width
       graphic_pos = graphic.position * self.scale + self.position
 
-      if self.hover is graphic:
+      if self.hover is graphic or graphic.entity.id in self.selected_entity_ids:
         graphic_color = WHITE
       else: 
         graphic_color = pg.colordict.THECOLORS.get(graphic.color) if isinstance(graphic.color, str) else graphic.color
@@ -152,8 +144,8 @@ class WorldWidget(Widget):
           width=graphic.border_width
         )
 
-  def _render_bottom_layer(self,graphics: List[SimpleGraphicComponent]):
-    for graphic in graphics:
+  def _render_bottom_layer(self):
+    for graphic in self.graphics:
       graphic_pos  = graphic.position * self.scale + self.position
 
       if 'sensor_radius' in graphic.entity.properties:

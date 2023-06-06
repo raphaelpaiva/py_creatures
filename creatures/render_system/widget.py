@@ -1,6 +1,6 @@
 import pygame as pg
 from creatures.render_system.aux_types import UIColor, UIPosition, UISize
-from creatures.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, ORIGIN
+from creatures.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, ORIGIN, WHITE
 
 
 class Widget(object):
@@ -43,10 +43,19 @@ class Widget(object):
     self.surface.fill(self.background_color)
 
     self.update()
+    if self.border_rect.collidepoint(pg.mouse.get_pos()):
+      self.on_hover()
 
     self.parent.blit(self.surface, self.position)
 
   def update(self): pass
+  def on_hover(self):
+    pg.draw.rect(
+      self.parent,
+      WHITE,
+      self.border_rect,
+      width=self.border_width
+    )
 
   @classmethod
   def center_in_surface(cls, surface: pg.surface, size: UISize) -> UIPosition:
