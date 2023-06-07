@@ -1,4 +1,5 @@
-from creatures.render_system.aux_types import UIColor, UIPosition, UISize
+from creatures.primitives import Vector
+from creatures.render_system.aux_types import UIColor, UISize
 
 
 SCREEN_WIDTH  = 800
@@ -6,7 +7,7 @@ SCREEN_HEIGHT = SCREEN_WIDTH
 ZOOM_LEVEL    = 0.95
 BORDER_WIDTH  = 2
 WORLD_MARGIN  = 5
-ORIGIN        = UIPosition(0, 0)
+ORIGIN        = Vector(0, 0)
 DEFAULT_SIZE  = UISize(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 FPS_LIMIT = 0

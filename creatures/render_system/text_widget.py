@@ -1,12 +1,13 @@
 from typing import List
 import pygame as pg
-from creatures.render_system.aux_types import UIColor, UIPosition, UISize
+from . import render_system
+from creatures.render_system.aux_types import UIColor, UISize
 from creatures.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, NICE_COLOR, ORIGIN, WHITE
 from creatures.render_system.widget import Widget
 from creatures.primitives import Vector
 
 class TextWidget(Widget):
-  def __init__(self, surface: pg.Surface, text: str, font: pg.font.Font, position: UIPosition = ORIGIN, size: UISize = DEFAULT_SIZE, background_color: UIColor = BACKGROUND_GREY, border_width: int = BORDER_WIDTH, border_color: UIColor = BLACK, margin: int = BORDER_WIDTH) -> None:
+  def __init__(self, surface: pg.Surface, text: str, font: pg.font.Font, position: Vector = ORIGIN, size: UISize = DEFAULT_SIZE, background_color: UIColor = BACKGROUND_GREY, border_width: int = BORDER_WIDTH, border_color: UIColor = BLACK, margin: int = BORDER_WIDTH) -> None:
     self.font = font
     self.width = 0
     
@@ -29,7 +30,7 @@ class TextWidget(Widget):
       return new_size
   
   def update(self):
-    text_surface_position = Vector(*self.position)
+    text_surface_position = Vector(0,0)
     
     for index, text_surface in enumerate(self.text_surfaces):
       text_surface_position += Vector(0, index * self.font.get_height())

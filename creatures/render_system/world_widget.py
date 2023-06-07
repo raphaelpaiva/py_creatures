@@ -5,7 +5,7 @@ from . import render_system
 from creatures.render_system.graphics import SimpleGraphicComponent
 from creatures.primitives import Vector
 
-from creatures.render_system.aux_types import UIColor, UIPosition, UISize
+from creatures.render_system.aux_types import UIColor, UISize
 from creatures.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, GREEN, NICE_COLOR, ORIGIN, WHITE
 from creatures.render_system.widget import Widget
 from creatures.world import World
@@ -17,7 +17,7 @@ class WorldWidget(Widget):
     world: World,
     scale: float,
     font: pg.font.Font,
-    position: UIPosition      = ORIGIN,
+    position: Vector      = ORIGIN,
     size: UISize              = DEFAULT_SIZE,
     background_color: UIColor = BACKGROUND_GREY,
     border_width: int         = BORDER_WIDTH,
@@ -48,6 +48,7 @@ class WorldWidget(Widget):
       'top': self.top_layer
     }
     self.graphics: List[SimpleGraphicComponent] = [e.get_component(SimpleGraphicComponent) for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
+    #self.movable = False
   
   def update(self):
     self.graphics = [e.get_component(SimpleGraphicComponent) for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
@@ -60,6 +61,7 @@ class WorldWidget(Widget):
     self._set_hover()
   
   def on_mouse_up(self):
+    super().on_mouse_up()
     if self.hover:
       self.hover.toggle_selected()
 
@@ -68,7 +70,7 @@ class WorldWidget(Widget):
     
     for graphic in self.graphics:
       graphic_size = graphic.size * self.scale - graphic.border_width
-      graphic_pos = graphic.position * self.scale + self.position
+      graphic_pos = graphic.position * self.scale#  + self.position
       if ( (graphic_pos - mouse_position).size() <= graphic_size ):
         self.hover = graphic
         if render_system.mouse.is_up:
@@ -81,7 +83,7 @@ class WorldWidget(Widget):
   def _render_top_layer(self):
     for graphic in self.graphics:
       size = graphic.size * self.scale - graphic.border_width
-      graphic_pos = graphic.position * self.scale + self.position
+      graphic_pos = graphic.position * self.scale#  + self.position
       
       if graphic.text:
         text_offset = Vector(5 + size, -1 * size - 5)
@@ -101,7 +103,7 @@ class WorldWidget(Widget):
   def _render_middle_layer(self):
     for graphic in self.graphics:
       graphic_size = graphic.size * self.scale - graphic.border_width
-      graphic_pos = graphic.position * self.scale + self.position
+      graphic_pos = graphic.position * self.scale#  + self.position
 
       if self.hover is graphic or graphic.selected:
         graphic_color = WHITE
@@ -149,7 +151,7 @@ class WorldWidget(Widget):
 
   def _render_bottom_layer(self):
     for graphic in self.graphics:
-      graphic_pos  = graphic.position * self.scale + self.position
+      graphic_pos  = graphic.position * self.scale#  + self.position
 
       if 'sensor_radius' in graphic.entity.properties:
         graphic_size = graphic.entity.properties['sensor_radius'] * self.scale

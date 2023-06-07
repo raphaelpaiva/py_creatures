@@ -64,6 +64,9 @@ class Vector(object):
 
   def as_tuple(self) -> Tuple[float, float]:
     return (self.x, self.y)
+  
+  def copy(self) -> Vector:
+    return Vector(self.x, self.y)
 
   def __eq__(self, __o: object) -> bool:
     return isinstance(__o, Vector) and ( isclose(self.x, __o.x, rel_tol=1e-1) and isclose(self.y, __o.y, rel_tol=1e-1))

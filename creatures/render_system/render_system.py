@@ -12,7 +12,7 @@ from creatures.system import System
 from creatures.world import World
 
 from .constants import (FPS_LIMIT, GREEN, SCREEN_HEIGHT, SCREEN_WIDTH, WHITE,
-                        ZOOM_LEVEL, UIPosition, UISize)
+                        ZOOM_LEVEL, UISize)
 from .stats import Stats
 from .text_widget import TextWidget
 from .widget import Widget
@@ -69,7 +69,6 @@ class RenderSystem(System):
     for widget in self.widgets:
       widget.render()
     
-    self.draw_cursor()
     pg.display.update()
 
   def draw_cursor(self):
