@@ -26,7 +26,7 @@ class RenderSystem(System):
     self.stats = Stats()
     self.screen_size = (SCREEN_WIDTH, SCREEN_HEIGHT)
     self.fps_limit = FPS_LIMIT
-    self.widgets: List[Widget] = []
+    self.ui_stack: List[Widget] = []
     self.mouse = mouse
     
     pg.init()
@@ -39,6 +39,7 @@ class RenderSystem(System):
     self.zoom_level = ZOOM_LEVEL
     
     self.scale = self.zoom_level * (self.screen.get_width() / self.world.width)
+
 
     world_widget_size = UISize(
       self.world.width * self.scale,
@@ -56,18 +57,30 @@ class RenderSystem(System):
 
     self.stats_widget = TextWidget(self.screen, 'Framerate: 0000.0 fps\nOpa!', self.font)
     
-    self.widgets.append(self.world_widget)
-    self.widgets.append(self.stats_widget)
+    self.add_ui_element(self.world_widget)
+    self.add_ui_element(self.stats_widget)
 
   def update(self, entities: List[Entity]):
+    self.ui_stack.sort(key=lambda w: w.z_position)
     self.mouse.update_position()
     self.handle_events()
     self.screen.fill(WHITE)
     self.stats.frametime = self.clock.tick(self.fps_limit)
     self.stats_widget.set_text(str(self.stats))
 
-    for widget in self.widgets:
+    self.top_hovering_widget = None
+    for widget in self.ui_stack:
+      widget.hovering = False
+      if widget.border_rect.collidepoint(self.mouse.position.as_tuple()):
+        if self.top_hovering_widget is None:
+          self.top_hovering_widget = widget
+        elif self.top_hovering_widget.z_position < widget.z_position:
+          self.top_hovering_widget = widget
       widget.render()
+    
+    if self.top_hovering_widget:
+      self.top_hovering_widget.hovering = True
+      self.top_hovering_widget.on_hover()
     
     pg.display.update()
 
@@ -82,15 +95,23 @@ class RenderSystem(System):
       GREEN
     )
 
+  def add_ui_element(self, element: Widget):
+    element.z_position = len(self.ui_stack)
+    self.ui_stack.append(element)
+
   def handle_events(self):
     for event in pg.event.get():
       e: pg.event.Event = event
       if e.type == pg.MOUSEBUTTONDOWN:
-        for widget in self.widgets:
-          widget.on_mouse_down()
+        if self.top_hovering_widget:
+          self.ui_stack.remove(self.top_hovering_widget)
+          self.add_ui_element(self.top_hovering_widget)
+          for i, ui_element in enumerate(self.ui_stack):
+            ui_element.z_position = i
+          self.top_hovering_widget.on_mouse_down()
       if e.type == pg.MOUSEBUTTONUP:
-        for widget in self.widgets:
-          widget.on_mouse_up()
+        if self.top_hovering_widget:
+          self.top_hovering_widget.on_mouse_up()
       if event.type == pg.QUIT:
         pg.quit()
         sys.exit()

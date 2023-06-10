@@ -58,6 +58,7 @@ class WorldWidget(Widget):
     self._render_top_layer()
 
   def on_hover(self):
+    super().on_hover()
     self._set_hover()
   
   def on_mouse_up(self):
@@ -70,7 +71,7 @@ class WorldWidget(Widget):
     
     for graphic in self.graphics:
       graphic_size = graphic.size * self.scale - graphic.border_width
-      graphic_pos = graphic.position * self.scale#  + self.position
+      graphic_pos = graphic.position * self.scale
       if ( (graphic_pos - mouse_position).size() <= graphic_size ):
         self.hover = graphic
         if render_system.mouse.is_up:

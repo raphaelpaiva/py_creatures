@@ -38,11 +38,13 @@ class Widget(object):
     self.moving   = False
     self.hovering = False
     self.movable  = True
+
+    self.z_position = -1
   
   def render(self):
     pg.draw.rect(
       self.parent,
-      self.border_color,
+      self.border_color if not self.hovering else WHITE,
       self.border_rect,
       width=self.border_width
     )
@@ -50,11 +52,6 @@ class Widget(object):
     self.surface.fill(self.background_color)
 
     self.update()
-    if self.border_rect.collidepoint((render_system.mouse.position.x, render_system.mouse.position.y)):
-      self.hovering = True
-      self.on_hover()
-    else:
-      self.hovering = False
 
     if self.moving:
       self.position += render_system.mouse.relative_movement
@@ -67,13 +64,7 @@ class Widget(object):
   def on_mouse_down(self):
     if self.hovering and self.movable:
       self.moving = True
-  def on_hover(self):
-    pg.draw.rect(
-      self.parent,
-      WHITE,
-      self.border_rect,
-      width=self.border_width
-    )
+  def on_hover(self): pass
 
   @classmethod
   def center_in_surface(cls, surface: pg.surface, size: UISize) -> Vector:
