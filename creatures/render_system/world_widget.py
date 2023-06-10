@@ -1,6 +1,8 @@
 from typing import List, Set
 import pygame as pg
 import pygame.gfxdraw as gfx
+
+from creatures.render_system.style import Style
 from . import render_system
 from creatures.render_system.graphics import SimpleGraphicComponent
 from creatures.primitives import Vector
@@ -17,22 +19,14 @@ class WorldWidget(Widget):
     world: World,
     scale: float,
     font: pg.font.Font,
-    position: Vector      = ORIGIN,
-    size: UISize              = DEFAULT_SIZE,
-    background_color: UIColor = BACKGROUND_GREY,
-    border_width: int         = BORDER_WIDTH,
-    border_color: UIColor     = BLACK,
-    margin: int               = BORDER_WIDTH
+    position: Vector = ORIGIN,
+    style: Style = Style()
   ) -> None:
 
     super().__init__(
       surface,
       position,
-      size,
-      background_color,
-      border_width,
-      border_color,
-      margin
+      style
     )
     
     self.world = world

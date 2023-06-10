@@ -1,5 +1,4 @@
 import sys
-from tkinter import Widget
 from typing import List
 
 import pygame as pg
@@ -7,6 +6,7 @@ import pygame.gfxdraw as gfx
 
 from creatures.entity import Entity
 from creatures.render_system.mouse_handler import Mouse
+from creatures.render_system.style import Style
 from creatures.render_system.world_widget import WorldWidget
 from creatures.system import System
 from creatures.world import World
@@ -45,6 +45,8 @@ class RenderSystem(System):
       self.world.width * self.scale,
       self.world.height * self.scale
     )
+    world_widget_style = Style()
+    world_widget_style.size = world_widget_size
 
     self.world_widget = WorldWidget(
       surface=self.screen,
@@ -52,10 +54,10 @@ class RenderSystem(System):
       scale=self.scale,
       font=self.font,
       position=Widget.center_in_surface(self.screen, world_widget_size),
-      size=world_widget_size
+      style=world_widget_style
     )
 
-    self.stats_widget = TextWidget(self.screen, 'Framerate: 0000.0 fps\nOpa!', self.font)
+    self.stats_widget = TextWidget(self.screen, 'Framerate: 0000.0 fps\nOpa!', style=Style(font=pg.font.SysFont(None, 18)))
     
     self.add_ui_element(self.world_widget)
     self.add_ui_element(self.stats_widget)
