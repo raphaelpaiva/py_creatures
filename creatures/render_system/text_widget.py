@@ -12,9 +12,8 @@ class TextWidget(Widget):
     self.style = style
     self.width = 0
     
-    new_size = self.create_text_content(text)
-    style.size = new_size
-    super().__init__(surface, style=style)
+    self.style.size = self.create_text_content(text)
+    super().__init__(surface, style=self.style)
 
   def create_text_content(self, text):
       self.text = text
@@ -34,13 +33,14 @@ class TextWidget(Widget):
   def update(self):
     text_surface_position = Vector(0,0)
     
-    for index, text_surface in enumerate(self.text_surfaces):
-      text_surface_position += Vector(0, index * self.font.get_height())
+    for text_surface in self.text_surfaces:
+      text_surface_position += Vector(0, self.font.get_height())
       self.surface.blit(text_surface, text_surface_position.as_tuple())
 
   def set_text(self, new_text):
-    self.size        = self.create_text_content(new_text)
-    self.surface     = pg.Surface(self.size)
+    self.style.size  = self.create_text_content(new_text)
+    self.surface     = pg.Surface(self.style.size)
+    self.surface.fill(self.style.background_color)
     self.rect        = self.surface.get_rect()
     self.border_rect = pg.rect.Rect(
       self.position.x + self.rect.left - self.style.border_width,

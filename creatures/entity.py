@@ -1,7 +1,6 @@
 from __future__ import annotations
 from math import sqrt
-from pyclbr import Class
-from typing import Any, Dict, List
+from typing import Any, Dict
 from creatures.primitives import Vector
 from creatures.component import Component, MetaDataComponent, MovementComponent
 
@@ -72,10 +71,11 @@ class Entity(object):
     return f"{self.__class__.__name__}({self.id}, {self.movement.position})"
   
   def to_dict(self) -> Dict[str, Any]:
+    components_dict = {k: v.to_dict() for k,v in self._components.items()}
     return {
       "type": self.type,
       "id": self.id,
-      "position": self.position.to_dict(),
+      "position": components_dict,
       "size": self.size,
       "mark_remove": self.mark_remove,
       "properties": self.properties

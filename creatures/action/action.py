@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, Dict, List
 from creatures.component import Component
 from creatures.component.component import EnergyComponent
 from creatures.entity import Entity, Vector
@@ -11,6 +11,7 @@ class Action(object):
   def run() -> None: pass
   @property
   def energy_cost(self): return 0.0
+  def to_dict(self) -> Dict[str, Any]: pass
 
 class Move(Action):
   def __init__(self, entity: Entity, direction: Vector, energy_cost: float = DEFAULT_MOVE_ACTION_ENERGY_COST) -> None:
@@ -28,6 +29,12 @@ class Move(Action):
   @property
   def energy_cost(self):
     return self._energy_cost * self.entity.properties.get('speed', 1.0)
+  
+  def to_dict(self) -> Dict[str, Any]:
+    return {
+      "self.direction": self.direction.to_dict(),
+      "self._energy_cost": self._energy_cost
+    }
 
 class Grab(Action):
   def __init__(self, entity: Entity, target: Entity) -> None:
@@ -40,12 +47,21 @@ class Grab(Action):
       energy_component = self.entity.get_component(EnergyComponent)
       energy_component.current = min(100, energy_component.current + 50)
       self.target.mark_remove = True
+  
+  def to_dict(self) -> Dict[str, Any]:
+    return {
+      "target": self.target.id
+    }
 
 
 class ActionComponent(Component):
   def __init__(self) -> None:
     super().__init__()
     self.action: Action = None
+  def to_dict(self) -> Dict[str, Any]:
+    return {
+      "action": self.action.to_dict() if self.action else None
+    }
 
 class ActionSystem(System):
   def __init__(self) -> None:

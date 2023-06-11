@@ -1,10 +1,12 @@
 import sys
+from tkinter import font
 from typing import List
 
 import pygame as pg
 import pygame.gfxdraw as gfx
 
 from creatures.entity import Entity
+from creatures.render_system.entity_widget import EntityWidget
 from creatures.render_system.mouse_handler import Mouse
 from creatures.render_system.style import Style
 from creatures.render_system.world_widget import WorldWidget
@@ -57,12 +59,18 @@ class RenderSystem(System):
       style=world_widget_style
     )
 
-    self.stats_widget = TextWidget(self.screen, 'Framerate: 0000.0 fps\nOpa!', style=Style(font=pg.font.SysFont(None, 18)))
+    self.stats_widget = TextWidget(self.screen, 'Framerate: 0000.0 fps\nOpa!', style=Style(font=self.font))
+    self.stats_widget = TextWidget(self.screen, 'Framerate: 0000.0 fps\nOpa!', style=Style(font=self.font))
+    self.entity_widget = None
     
     self.add_ui_element(self.world_widget)
     self.add_ui_element(self.stats_widget)
 
   def update(self, entities: List[Entity]):
+    if not self.entity_widget:
+      self.entity_widget = EntityWidget(self.screen, entities[0], style=Style(font=self.font))
+      self.add_ui_element(self.entity_widget)
+    
     self.ui_stack.sort(key=lambda w: w.z_position)
     self.mouse.update_position()
     self.handle_events()
@@ -72,12 +80,14 @@ class RenderSystem(System):
 
     self.top_hovering_widget = None
     for widget in self.ui_stack:
-      widget.hovering = False
       if widget.border_rect.collidepoint(self.mouse.position.as_tuple()):
         if self.top_hovering_widget is None:
           self.top_hovering_widget = widget
         elif self.top_hovering_widget.z_position < widget.z_position:
           self.top_hovering_widget = widget
+      else:
+        widget.hovering = False
+      
       widget.render()
     
     if self.top_hovering_widget:

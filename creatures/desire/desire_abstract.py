@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import Any, Dict
 from creatures.component.component import Component
 
 from creatures.entity import Entity
@@ -36,3 +37,7 @@ class DesireComponent(Component):
   def __init__(self, desire: Desire) -> None:
     super().__init__()
     self.desire = desire
+  def to_dict(self) -> Dict[str, Any]:
+    return {
+      "desire": self.desire.to_dict()
+    }
