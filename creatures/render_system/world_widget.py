@@ -3,6 +3,8 @@ import pygame as pg
 import pygame.gfxdraw as gfx
 
 from creatures.render_system.style import Style
+from creatures.sensor.sensor import RadialSensor
+from creatures.sensor.sensor_component import SensorComponent
 from . import render_system
 from creatures.render_system.graphics import SimpleGraphicComponent
 from creatures.primitives import Vector
@@ -97,7 +99,7 @@ class WorldWidget(Widget):
 
   def _render_middle_layer(self):
     for graphic in self.graphics:
-      graphic_size = graphic.size * self.scale - graphic.border_width
+      graphic_size = graphic.size * self.scale
       graphic_pos = graphic.position * self.scale#  + self.position
 
       if self.hover is graphic or graphic.selected:
@@ -148,15 +150,18 @@ class WorldWidget(Widget):
     for graphic in self.graphics:
       graphic_pos  = graphic.position * self.scale#  + self.position
 
-      if 'sensor_radius' in graphic.entity.properties:
-        graphic_size = graphic.entity.properties['sensor_radius'] * self.scale
-        gfx.aacircle(
-          self.surface,
-          int(graphic_pos.x),
-          int(graphic_pos.y),
-          int(graphic_size),
-          BLACK
-        )
+      sensor_component: SensorComponent = graphic.entity.get_component(SensorComponent)
+      if sensor_component:
+        for sensor in sensor_component.sensors:
+          if isinstance(sensor, RadialSensor):
+            graphic_size = sensor.radius * self.scale
+            gfx.aacircle(
+              self.surface,
+              int(graphic_pos.x),
+              int(graphic_pos.y),
+              int(graphic_size),
+              BLACK
+            )
       
       if 'grab_radius' in graphic.entity.properties:
         graphic_size = graphic.entity.properties['grab_radius'] * self.scale

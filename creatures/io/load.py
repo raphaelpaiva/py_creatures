@@ -1,5 +1,6 @@
 from typing import Any, Callable, Dict, Type
 import yaml
+from creatures.brain.brain_component import BrainComponent
 from creatures.desire import Grab, MoveTo, StayStill, Wander, WanderFollow
 from creatures.component.component import EnergyComponent, MetaDataComponent, MovementComponent
 
@@ -7,6 +8,8 @@ from creatures.entity import Entity
 from creatures.render_system.graphics import SimpleGraphicComponent
 from creatures.location.location import Location, Somewhere
 from creatures.primitives import Vector
+from creatures.sensor.sensor import RadialSensor
+from creatures.sensor.sensor_component import SensorComponent
 from ..desire.desire_abstract import Desire, DesireComponent
 from ..world import Frame, World
 
@@ -82,8 +85,10 @@ class Loader(object):
     
     default_desire = {'type': 'Wander'} if entity_type == Entity.__name__ else {'type': 'StayStill'}
     
-    desire_dict = entity_dict.get("desire", default_desire)
+    desire_dict     = entity_dict.get("desire", default_desire)
     properties_dict = entity_dict.get('properties', {})
+    has_brain_dict  = 'brain' in entity_dict
+    sensor_list     = entity_dict.get('sensors', [])
 
     position = Somewhere(self.world.width, self.world.height).get() if position_dict == 'Somewhere' else self._load_vector(position_dict)
     entity = Entity(entity_id) 
@@ -94,6 +99,13 @@ class Loader(object):
     entity.add_component(MovementComponent(position))
     entity.add_component(MetaDataComponent(properties_dict.get('name', entity_id), entity_type))
     entity.add_component(SimpleGraphicComponent(entity))
+
+    if has_brain_dict:
+      entity.add_component(BrainComponent())
+    
+    if isinstance(sensor_list, list):
+      sensors = [RadialSensor(s['radius']) for s in sensor_list]
+      entity.add_component(SensorComponent(sensors))
     
     if not entity.is_resource:
       entity.add_component(EnergyComponent())

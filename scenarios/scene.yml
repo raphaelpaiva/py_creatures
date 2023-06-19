@@ -1,0 +1,14 @@
+scene:
+  systems:
+    - desireSystem
+    - ActionSystem
+    - MovementSystem
+    - EnergySystem
+    - RenderSystem:
+        screen_size: (800,800)
+        widgets:
+          - WorldWidget
+          - StatsWidget
+  width: 100
+  height: 100
+  entities:  []

@@ -3,12 +3,14 @@ from time import time
 import traceback
 
 from creatures.action.action import ActionSystem
+from creatures.brain.brain_system import BrainSystem
 from creatures.desire.desire_system import DesireSystem
 from creatures.energy import EnergySystem
 
 from creatures.io.load import Loader, ParseException
 from creatures.movement import MovementSystem
 from creatures.render_system import RenderSystem
+from creatures.sensor.sensor_system import SensorSystem
 from creatures.world import World
 
 DEFAULT_FILENAME = 'scenarios/somecreatures.yml'
@@ -24,6 +26,8 @@ def main():
   try:
     frame = Loader(filename).load()
     world: World = frame.world
+    world.add_system(BrainSystem())
+    world.add_system(SensorSystem())
     world.add_system(DesireSystem())
     world.add_system(ActionSystem())
     world.add_system(MovementSystem(world))
