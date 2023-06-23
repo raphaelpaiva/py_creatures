@@ -2,6 +2,7 @@ from core.component.component import MetaDataComponent, MovementComponent
 from core.desire import StayStill
 from core.desire.desire_abstract import Desire, DesireComponent
 from core.entity import Entity, _next_id
+from core.primitives import Vector
 from core.render_system.graphics import SimpleGraphicComponent
 from core.sensor.sensor import RadialSensor
 from core.sensor.sensor_component import SensorComponent
@@ -9,7 +10,7 @@ from core.sensor.sensor_component import SensorComponent
 class Creature(object):
   def __init__(self, id: str) -> None:
     self.entity           = Entity('creature_')
-    self.movement         = MovementComponent()
+    self.movement         = MovementComponent(Vector(100, 100))
     self.metadata         = MetaDataComponent(self.entity.id, 'creature')
     
     self.entity.add_component(self.metadata)

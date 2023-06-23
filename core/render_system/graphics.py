@@ -1,5 +1,6 @@
 from typing import List
 from core.component.component import Component, EnergyComponent
+from core.desire.desire_abstract import DesireComponent
 from core.entity import Entity
 from core.primitives import Vector
 from core.render_system.constants import BORDER_WIDTH, NICE_COLOR
@@ -24,8 +25,12 @@ class SimpleGraphicComponent(Component):
   
   @property
   def text(self) -> List[str]:
-    return [
-      self.entity.name,
-      str(self.entity.desire),
-      str(self.entity.get_component(EnergyComponent.__name__))
-    ]
+    desire_component: DesireComponent = self.entity.get_component(DesireComponent)
+    
+    result: List[str] = []
+    result.append(self.entity.name)
+    if desire_component:
+      result.append(str(desire_component.desire))
+    result.append(str(self.entity.get_component(EnergyComponent)))
+    
+    return result
