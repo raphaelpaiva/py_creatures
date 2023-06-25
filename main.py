@@ -5,6 +5,7 @@ import traceback
 from core.action.action import ActionSystem
 from core.brain.brain_system import BrainSystem
 from core.creatures.creature import Creature
+from core.desire import Wander
 from core.desire.desire_system import DesireSystem
 from core.energy import EnergySystem
 
@@ -26,15 +27,17 @@ def main():
   
   try:
     frame = Loader(filename).load()
+    creature = Creature('creature')
     world: World = frame.world
-    #world.add_system(BrainSystem())
+    creature.desire = Wander(creature.entity, world=world)
+    world.add_system(BrainSystem(world))
     world.add_system(SensorSystem())
     world.add_system(DesireSystem())
     world.add_system(ActionSystem())
     world.add_system(MovementSystem(world))
     world.add_system(EnergySystem(world))
     world.add_system(RenderSystem(world))
-    world.add(Creature('creature').entity)
+    world.add(creature.entity)
     
     if benchmark:
       benchmark_loop(world)

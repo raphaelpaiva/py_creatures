@@ -1,7 +1,9 @@
+from typing import Set
+from core.brain.brain_component import BrainComponent
 from core.component.component import MetaDataComponent, MovementComponent
-from core.desire import StayStill
+from core.desire import StayStill, Wander
 from core.desire.desire_abstract import Desire, DesireComponent
-from core.entity import Entity, _next_id
+from core.entity import Entity
 from core.primitives import Vector
 from core.render_system.graphics import SimpleGraphicComponent
 from core.sensor.sensor import RadialSensor
@@ -15,21 +17,31 @@ class Creature(object):
     
     self.entity.add_component(self.metadata)
     
-    self.sensor           = RadialSensor(15)
+    self.sensor           = RadialSensor(50)
+    self.sensor_component = SensorComponent([self.sensor])
     self._desire          = StayStill(self.entity)
     self.desire_component = DesireComponent(self._desire)
-    self.graphics         = SimpleGraphicComponent(self.entity)
 
     self.entity.add_component(self.movement)
-    self.entity.add_component(self.graphics)
-    self.entity.add_component(SensorComponent([self.sensor]))
-    self.entity.add_component(DesireComponent(self.desire))
+    self.entity.add_component(self.sensor_component)
+    self.entity.add_component(self.desire_component)
     
-
+    self.graphics         = SimpleGraphicComponent(self.entity)
+    self.entity.add_component(self.graphics)
+    self.entity.add_component(BrainComponent(self))
+  
   @property
-  def desire(self):
+  def desire(self) -> Desire:
     return self.desire_component.desire
 
   @desire.setter
   def desire(self, desire: Desire):
     self.desire_component.desire = desire
+  
+  @property
+  def wandering(self) -> bool:
+    return isinstance(self.desire, Wander)
+  
+  @property
+  def detected(self) -> Set[Entity]:
+    return self.sensor_component.detected

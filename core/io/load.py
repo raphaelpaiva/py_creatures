@@ -98,10 +98,6 @@ class Loader(object):
     entity.properties = properties_dict
     entity.add_component(MovementComponent(position))
     entity.add_component(MetaDataComponent(properties_dict.get('name', entity_id), entity_type))
-    entity.add_component(SimpleGraphicComponent(entity))
-
-    if has_brain_dict:
-      entity.add_component(BrainComponent())
     
     if isinstance(sensor_list, list):
       sensors = [RadialSensor(s['radius']) for s in sensor_list]
@@ -111,6 +107,8 @@ class Loader(object):
       entity.add_component(EnergyComponent())
     
     entity.desire = self._load_desire(desire_dict)
+
+    entity.add_component(SimpleGraphicComponent(entity))
 
     return entity
 

@@ -3,30 +3,37 @@ from typing import List
 from pygame import init
 from core.brain.brain_component import BrainComponent
 from core.component.component import EnergyComponent
+from core.creatures.creature import Creature
 from core.desire import Wander
+from core.desire.MoveTo import MoveTo
 from core.desire.desire_abstract import DesireComponent
 from core.entity import Entity
+from core.location.location import Location
 from core.sensor.sensor_component import SensorComponent
 from core.system import System
+from core.world import World
 
 class BrainSystem(System):
-  def __init__(self) -> None:
+  def __init__(self, world: World) -> None:
     super().__init__()
+    self.world = world
   
   def update(self, entities: List[Entity]):
     for entity in entities:
-      brain_component = entity.get_component(BrainComponent)
-      if brain_component:
-        cons = Consciousness(entity)
-        if cons.wandering:
-          if cons.entities_nearby:
-            cons.follow(cons.target)
+        brain_component = entity.get_component(BrainComponent)
+        if brain_component:
+          creature = brain_component.creature
+          if creature.wandering:
+            detected_entities = creature.detected
+            if detected_entities:
+              self.follow(creature, list(detected_entities)[0])
 
-
-        if hungry(entity):
-          desire_component: DesireComponent = entity.get_component(DesireComponent)
-          
-          #desire_component.desire = SearchForFood(entity)
+          # if hungry(entity):
+          #   desire_component: DesireComponent = entity.get_component(DesireComponent)
+            
+            #desire_component.desire = SearchForFood(entity)
+  def follow(self, creature: Creature, target: Entity):
+    creature.desire = MoveTo(creature.entity, Location(lambda: target.movement.position), world=self.world)
 
 def hungry(entity: Entity) -> bool:
   energy_component: EnergyComponent = entity.get_component(EnergyComponent)
@@ -52,3 +59,7 @@ class Consciousness(object):
       return list(sensor_component.detected)
     else:
       return []
+  
+  def follow(self, target: Entity):
+    self.entity
+

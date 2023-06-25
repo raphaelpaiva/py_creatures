@@ -1,6 +1,9 @@
 from core.primitives import Vector
 from core.render_system.aux_types import UIColor, UISize
 
+TOP_LAYER     = 0
+MIDDLE_LAYER  = 1
+BOTTOM_LAYER  = 2
 
 SCREEN_WIDTH  = 800
 SCREEN_HEIGHT = SCREEN_WIDTH

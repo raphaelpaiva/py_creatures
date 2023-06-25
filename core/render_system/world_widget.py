@@ -6,11 +6,11 @@ from core.render_system.style import Style
 from core.sensor.sensor import RadialSensor
 from core.sensor.sensor_component import SensorComponent
 from . import render_system
-from core.render_system.graphics import SimpleGraphicComponent
+from core.render_system.graphics import Graphic, SimpleGraphicComponent
 from core.primitives import Vector
 
 from core.render_system.aux_types import UIColor, UISize
-from core.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, GREEN, NICE_COLOR, ORIGIN, WHITE
+from core.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, BOTTOM_LAYER, DEFAULT_SIZE, GREEN, MIDDLE_LAYER, NICE_COLOR, ORIGIN, TOP_LAYER, WHITE
 from core.render_system.widget import Widget
 from core.world import World
 
@@ -43,11 +43,20 @@ class WorldWidget(Widget):
       'world': self.world_layer,
       'top': self.top_layer
     }
-    self.graphics: List[SimpleGraphicComponent] = [e.get_component(SimpleGraphicComponent) for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
-    #self.movable = False
+    self.graphics: List[Graphic] = self.get_graphics()
+    self.movable = False
+
+  def get_graphics(self):
+      graphic_components: List[SimpleGraphicComponent] = [e.get_component(SimpleGraphicComponent) for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
+      result: List[Graphic] = []
+
+      for sgc in graphic_components:
+        result.extend(sgc.graphics)
+
+      return result
   
   def update(self):
-    self.graphics = [e.get_component(SimpleGraphicComponent) for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
+    self.graphics = self.get_graphics()
     self._set_hover()
     self._render_bottom_layer()
     self._render_middle_layer()
@@ -79,16 +88,15 @@ class WorldWidget(Widget):
 
   def _render_top_layer(self):
     for graphic in self.graphics:
+      if graphic.layer != TOP_LAYER: continue
+      
       size = graphic.size * self.scale - graphic.border_width
-      graphic_pos = graphic.position * self.scale#  + self.position
+      graphic_pos = graphic.position * self.scale
       
       if graphic.text:
         text_offset = Vector(5 + size, -1 * size - 5)
-        text_offset = self._render_text(graphic_pos, text_offset, graphic.text[0])
-      
-        if self.hover is graphic or graphic.selected:
-          for text in graphic.text[1::]:
-            text_offset = self._render_text(graphic_pos, text_offset, text)
+        for text in graphic.text:
+          text_offset = self._render_text(graphic_pos, text_offset, text)
 
   def _render_text(self, graphic_pos, text_offset, text):
     rendered = self.font.render(text, True, NICE_COLOR)
@@ -99,8 +107,10 @@ class WorldWidget(Widget):
 
   def _render_middle_layer(self):
     for graphic in self.graphics:
+      if graphic.layer != MIDDLE_LAYER: continue
+      
       graphic_size = graphic.size * self.scale
-      graphic_pos = graphic.position * self.scale#  + self.position
+      graphic_pos = graphic.position * self.scale
 
       if self.hover is graphic or graphic.selected:
         graphic_color = WHITE
@@ -148,28 +158,28 @@ class WorldWidget(Widget):
 
   def _render_bottom_layer(self):
     for graphic in self.graphics:
+      if graphic.layer != BOTTOM_LAYER: continue
+      
+      graphic_size = graphic.size * self.scale
       graphic_pos  = graphic.position * self.scale#  + self.position
 
-      sensor_component: SensorComponent = graphic.entity.get_component(SensorComponent)
-      if sensor_component:
-        for sensor in sensor_component.sensors:
-          if isinstance(sensor, RadialSensor):
-            graphic_size = sensor.radius * self.scale
-            gfx.aacircle(
-              self.surface,
-              int(graphic_pos.x),
-              int(graphic_pos.y),
-              int(graphic_size),
-              BLACK
-            )
-      
-      if 'grab_radius' in graphic.entity.properties:
-        graphic_size = graphic.entity.properties['grab_radius'] * self.scale
+      if graphic.shape == 'circle':
+        if graphic.color != 'transparent':
+          graphic_color = pg.colordict.THECOLORS.get(graphic.color) if isinstance(graphic.color, str) else graphic.color
+          gfx.filled_circle(
+            self.surface,
+            int(graphic_pos.x),
+            int(graphic_pos.y),
+            int(graphic_size),
+            graphic_color
+          )
+        
         gfx.aacircle(
           self.surface,
           int(graphic_pos.x),
           int(graphic_pos.y),
           int(graphic_size),
-          GREEN
+          graphic.border_color
         )
+
         

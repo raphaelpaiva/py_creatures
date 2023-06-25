@@ -1,11 +1,13 @@
 import sys
 from tkinter import font
+from turtle import position
 from typing import List
 
 import pygame as pg
 import pygame.gfxdraw as gfx
 
 from core.entity import Entity
+from core.primitives import Vector
 from core.render_system.entity_widget import EntityWidget
 from core.render_system.mouse_handler import Mouse
 from core.render_system.style import Style
@@ -13,7 +15,7 @@ from core.render_system.world_widget import WorldWidget
 from core.system import System
 from core.world import World
 
-from .constants import (FPS_LIMIT, GREEN, SCREEN_HEIGHT, SCREEN_WIDTH, WHITE,
+from .constants import (FPS_LIMIT, GREEN, ORIGIN, SCREEN_HEIGHT, SCREEN_WIDTH, WHITE,
                         ZOOM_LEVEL, UISize)
 from .stats import Stats
 from .text_widget import TextWidget
@@ -42,7 +44,6 @@ class RenderSystem(System):
     
     self.scale = self.zoom_level * (self.screen.get_width() / self.world.width)
 
-
     world_widget_size = UISize(
       self.world.width * self.scale,
       self.world.height * self.scale
@@ -55,11 +56,10 @@ class RenderSystem(System):
       world=world,
       scale=self.scale,
       font=self.font,
-      position=Widget.center_in_surface(self.screen, world_widget_size),
-      style=world_widget_style
+      position=ORIGIN,
+      style=world_widget_style,
     )
-
-    self.stats_widget = TextWidget(self.screen, 'Framerate: 0000.0 fps\nOpa!', style=Style(font=self.font))
+    
     self.stats_widget = TextWidget(self.screen, 'Framerate: 0000.0 fps\nOpa!', style=Style(font=self.font))
     self.entity_widget = None
     
