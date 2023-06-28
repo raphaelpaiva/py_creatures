@@ -24,13 +24,13 @@ class RenderSystem(System):
     super().__init__()
     self.world = world
     self.stats = Stats()
-    self.screen_size = (SCREEN_WIDTH, SCREEN_HEIGHT)
+    self.screen_size = Vector(SCREEN_WIDTH, SCREEN_HEIGHT)
     self.fps_limit = FPS_LIMIT
     self.ui_stack: List[Widget] = []
     self.mouse = mouse
     
     pg.init()
-    self.screen = pg.display.set_mode(self.screen_size)
+    self.screen = pg.display.set_mode(self.screen_size.as_tuple())
     self.font = pg.font.SysFont(None, 18)
 
     self.clock = pg.time.Clock()
@@ -39,10 +39,12 @@ class RenderSystem(System):
     self.zoom_level = 0.7
     
     self.scale = self.zoom_level * (self.screen.get_width() / self.world.width)
+    scale_x = self.scale
+    scale_y = self.zoom_level * (self.screen.get_height() / self.world.height)
 
     world_widget_size = UISize(
-      self.world.width * self.scale,
-      (self.world.height + 41) * self.scale
+      self.world.width * scale_x,
+      (self.world.height + 80) * scale_y
     )
     world_widget_style = Style()
     world_widget_style.size = world_widget_size
