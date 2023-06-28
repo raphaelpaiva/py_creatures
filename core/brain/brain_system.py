@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set
 
 from pygame import init
 from core.brain.brain_component import BrainComponent
@@ -26,14 +26,35 @@ class BrainSystem(System):
           if creature.wandering:
             detected_entities = creature.detected
             if detected_entities:
-              self.follow(creature, list(detected_entities)[0])
+              target = self.choose_target(brain_component, detected_entities)
+              self.follow(creature, target)
 
           # if hungry(entity):
           #   desire_component: DesireComponent = entity.get_component(DesireComponent)
             
             #desire_component.desire = SearchForFood(entity)
   def follow(self, creature: Creature, target: Entity):
-    creature.desire = MoveTo(creature.entity, Location(lambda: target.movement.position, identifier=target.id), world=self.world)
+    if target:
+      creature.desire = MoveTo(creature.entity, Location(lambda: target.movement.position, identifier=target.id), world=self.world)
+  
+  def choose_target(self, brain: BrainComponent, detected_entities: Set[Entity]) -> Entity:
+    if brain.hungry:  
+      return self.nearest_resource(brain, detected_entities)
+
+  def nearest_resource(self, brain: BrainComponent, detected_entities: Set[Entity]) -> Entity | None:
+      resources = list(filter(lambda e: e.is_resource, detected_entities))
+      if resources:
+        nearest: Entity = resources[0]
+        nearest_distance = brain.creature.entity.distance(nearest)
+        for resource in resources:
+          distance = brain.creature.entity.distance(resource)
+          if distance < nearest_distance:
+            nearest_distance = distance
+            nearest = resource
+        
+        return nearest
+      else:
+        return None
 
 def hungry(entity: Entity) -> bool:
   energy_component: EnergyComponent = entity.get_component(EnergyComponent)
@@ -60,6 +81,3 @@ class Consciousness(object):
     else:
       return []
   
-  def follow(self, target: Entity):
-    self.entity
-

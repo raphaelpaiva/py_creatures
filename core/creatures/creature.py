@@ -1,6 +1,6 @@
 from typing import Set
 from core.brain.brain_component import BrainComponent
-from core.component.component import MetaDataComponent, MovementComponent
+from core.component.component import EnergyComponent, MetaDataComponent, MovementComponent
 from core.desire import StayStill, Wander
 from core.desire.desire_abstract import Desire, DesireComponent
 from core.entity import Entity
@@ -14,6 +14,7 @@ class Creature(object):
     self.entity           = Entity('creature_')
     self.movement         = MovementComponent(Vector(100, 100))
     self.metadata         = MetaDataComponent(self.entity.id, 'creature')
+    self.brain            = BrainComponent(self)
     
     self.entity.add_component(self.metadata)
     
@@ -21,14 +22,17 @@ class Creature(object):
     self.sensor_component = SensorComponent([self.sensor])
     self._desire          = StayStill(self.entity)
     self.desire_component = DesireComponent(self._desire)
+    self.energy = EnergyComponent()
 
     self.entity.add_component(self.movement)
     self.entity.add_component(self.sensor_component)
     self.entity.add_component(self.desire_component)
     
-    self.graphics         = SimpleGraphicComponent(self.entity)
+    self.entity.add_component(self.brain)
+    self.entity.add_component(self.energy)
+    
+    self.graphics = SimpleGraphicComponent(self.entity)
     self.entity.add_component(self.graphics)
-    self.entity.add_component(BrainComponent(self))
   
   @property
   def desire(self) -> Desire:
@@ -45,3 +49,4 @@ class Creature(object):
   @property
   def detected(self) -> Set[Entity]:
     return self.sensor_component.detected
+  
