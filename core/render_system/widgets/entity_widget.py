@@ -66,7 +66,7 @@ class EntityWidget(TextWidget):
       match desire_component.desire.__class__:
         case core.desire.MoveTo:
           desire: MoveTo = desire_component.desire
-          return f"MoveTo({desire.location.get()})"
+          return f"MoveTo({desire.location})"
         case _:
           return desire_component.desire.__class__.__name__
     else:

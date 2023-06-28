@@ -33,7 +33,7 @@ class BrainSystem(System):
             
             #desire_component.desire = SearchForFood(entity)
   def follow(self, creature: Creature, target: Entity):
-    creature.desire = MoveTo(creature.entity, Location(lambda: target.movement.position), world=self.world)
+    creature.desire = MoveTo(creature.entity, Location(lambda: target.movement.position, identifier=target.id), world=self.world)
 
 def hungry(entity: Entity) -> bool:
   energy_component: EnergyComponent = entity.get_component(EnergyComponent)
