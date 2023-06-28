@@ -5,19 +5,17 @@ frame:
     height: 200
     entities:
       - id: 'agent'
-        position: {x: 75, y: 80}
-        properties:
-          name: Agent
-          color: red
-          speed: 2
-      - id: 'target'
         position: {x: 25, y: 40}
         properties:
           name: Follower
           color: blue
           speed: 1
-          sensor_radius: 50.0
-        desire: WanderFollow
+          grab_radius: 10.0
+        desire: Wander
+        brain:
+        sensors:
+          - radius: 50.0
+      
       - id: res001
         type: Resource
         position: {x: 100, y: 50}
@@ -25,6 +23,6 @@ frame:
           size: 2
       - id: res002
         type: Resource
+        position: {x: 20, y: 50}
         properties:
           size: 2
-
