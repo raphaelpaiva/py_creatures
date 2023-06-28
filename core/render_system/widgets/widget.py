@@ -7,9 +7,9 @@ from core.render_system.aux_types import UIColor, UISize
 from core.render_system.constants import (BACKGROUND_GREY, BLACK,
                                                BORDER_WIDTH, DEFAULT_SIZE,
                                                ORIGIN, WHITE)
-from core.render_system.style import Style
+from .style import Style
 
-from . import render_system
+from ..mouse_handler import mouse
 
 class Widget(object):
   def __init__(self,
@@ -51,7 +51,7 @@ class Widget(object):
     self.update()
 
     if self.moving:
-      self.position += render_system.mouse.relative_movement
+      self.position += mouse.relative_movement
 
     self.parent.blit(self.surface, self.position.as_tuple())
 

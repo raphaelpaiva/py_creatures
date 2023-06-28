@@ -1,18 +1,16 @@
-from typing import List, Set
+from typing import List
 import pygame as pg
 import pygame.gfxdraw as gfx
 
-from core.render_system.style import Style
-from core.sensor.sensor import RadialSensor
-from core.sensor.sensor_component import SensorComponent
-from . import render_system
 from core.render_system.graphics import Graphic, SimpleGraphicComponent
 from core.primitives import Vector
 
-from core.render_system.aux_types import UIColor, UISize
-from core.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, BOTTOM_LAYER, DEFAULT_SIZE, GREEN, MIDDLE_LAYER, NICE_COLOR, ORIGIN, TOP_LAYER, WHITE
-from core.render_system.widget import Widget
+from core.render_system.constants import BLACK, BOTTOM_LAYER, GREEN, MIDDLE_LAYER, NICE_COLOR, ORIGIN, TOP_LAYER, WHITE
+from core.render_system.widgets.style import Style
+from core.render_system.widgets.widget import Widget
 from core.world import World
+
+from core.render_system.mouse_handler import mouse
 
 class WorldWidget(Widget):
   def __init__(
@@ -46,6 +44,8 @@ class WorldWidget(Widget):
     self.graphics: List[Graphic] = self.get_graphics()
     self.movable = False
 
+    self.selected_entity = None
+
   def get_graphics(self):
       graphic_components: List[SimpleGraphicComponent] = [e.get_component(SimpleGraphicComponent) for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
       result: List[Graphic] = []
@@ -69,19 +69,19 @@ class WorldWidget(Widget):
   def on_mouse_up(self):
     super().on_mouse_up()
     if self.hover:
+      self.selected_entity = self.hover.entity
       self.hover.toggle_selected()
+    else:
+      self.selected_entity = None
 
   def _set_hover(self):
-    mouse_position = render_system.mouse.position - self.position
+    mouse_position = mouse.position - self.position
     
     for graphic in self.graphics:
       graphic_size = graphic.size * self.scale - graphic.border_width
       graphic_pos = graphic.position * self.scale
       if ( (graphic_pos - mouse_position).size() <= graphic_size ):
         self.hover = graphic
-        if render_system.mouse.is_up:
-          graphic.toggle_selected()
-
         return
     
     self.hover = None

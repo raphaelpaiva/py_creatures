@@ -2,18 +2,18 @@ from typing import List
 import pygame as pg
 from core.render_system.aux_types import UIColor, UISize
 from core.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, NICE_COLOR, ORIGIN, WHITE
-from core.render_system.style import Style
-from core.render_system.widget import Widget
+from .style import Style
+from .widget import Widget
 from core.primitives import Vector
 
 class TextWidget(Widget):
-  def __init__(self, surface: pg.Surface, text: str, style: Style = Style()) -> None:
+  def __init__(self, surface: pg.Surface, text: str, position: Vector = ORIGIN, style: Style = Style()) -> None:
     self.font = style.font
     self.style = style
     self.width = 0
     
     self.style.size = self.create_text_content(text)
-    super().__init__(surface, style=self.style)
+    super().__init__(surface, position=position, style=self.style)
 
   def create_text_content(self, text):
       self.text = text
@@ -21,7 +21,7 @@ class TextWidget(Widget):
       self.text_surfaces: List[pg.Surface] = []
 
       self.width = 0
-      height = len(self.lines) * self.font.get_height()
+      height = (len(self.lines) + 1) * self.font.get_height()
       for line in self.lines:
         text_surface = self.font.render(line, True, NICE_COLOR)
         self.width = max(self.width, text_surface.get_width())

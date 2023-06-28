@@ -25,4 +25,5 @@ class Mouse(object):
     self.is_up = is_up if is_up is not None else self.is_up
     self.left_pressed = left_pressed if left_pressed is not None else self.left_pressed
     self.right_pressed = right_pressed if right_pressed is not None else self.right_pressed
-    
+
+mouse: Mouse = Mouse()

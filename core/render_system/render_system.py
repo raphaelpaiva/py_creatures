@@ -8,20 +8,16 @@ import pygame.gfxdraw as gfx
 
 from core.entity import Entity
 from core.primitives import Vector
-from core.render_system.entity_widget import EntityWidget
+from core.render_system.widgets import EntityWidget, WorldWidget, Widget, Style, StatsWidget
 from core.render_system.mouse_handler import Mouse
-from core.render_system.style import Style
-from core.render_system.world_widget import WorldWidget
+from core.render_system.widgets.text_widget import TextWidget
 from core.system import System
 from core.world import World
 
 from .constants import (FPS_LIMIT, GREEN, ORIGIN, SCREEN_HEIGHT, SCREEN_WIDTH, WHITE,
                         ZOOM_LEVEL, UISize)
 from .stats import Stats
-from .text_widget import TextWidget
-from .widget import Widget
-
-mouse: Mouse = Mouse()
+from .mouse_handler import mouse
 
 class RenderSystem(System):
   def __init__(self, world: World) -> None:
@@ -40,13 +36,13 @@ class RenderSystem(System):
     self.clock = pg.time.Clock()
     self.stats.frametime = self.clock.tick(self.fps_limit)
 
-    self.zoom_level = ZOOM_LEVEL
+    self.zoom_level = 0.7
     
     self.scale = self.zoom_level * (self.screen.get_width() / self.world.width)
 
     world_widget_size = UISize(
       self.world.width * self.scale,
-      self.world.height * self.scale
+      (self.world.height + 41) * self.scale
     )
     world_widget_style = Style()
     world_widget_style.size = world_widget_size
@@ -60,16 +56,27 @@ class RenderSystem(System):
       style=world_widget_style,
     )
     
-    self.stats_widget = TextWidget(self.screen, 'Framerate: 0000.0 fps\nOpa!', style=Style(font=self.font))
-    self.entity_widget = None
+    self.stats_widget = TextWidget(
+      self.screen, 'Framerate: 0000.0 fps\nOpa!',
+      position=Vector(self.screen.get_width() - 225, 0),
+      style=Style(font=self.font)
+    )
+    self.entity_widget = EntityWidget(
+      self.screen,
+      None,
+      position=Vector(
+        self.screen.get_width() - 225,
+        45 + self.stats_widget.position.y + self.stats_widget.style.size.height
+      ),
+      style=Style(font=self.font)
+    )
+    self.add_ui_element(self.entity_widget)
     
     self.add_ui_element(self.world_widget)
     self.add_ui_element(self.stats_widget)
 
   def update(self, entities: List[Entity]):
-    if not self.entity_widget:
-      self.entity_widget = EntityWidget(self.screen, entities[0], style=Style(font=self.font))
-      self.add_ui_element(self.entity_widget)
+    self.entity_widget.entity = self.world_widget.selected_entity
     
     self.ui_stack.sort(key=lambda w: w.z_position)
     self.mouse.update_position()

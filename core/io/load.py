@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict, Type
 import yaml
 from core.brain.brain_component import BrainComponent
-from core.desire import Grab, MoveTo, StayStill, Wander, WanderFollow
+from core.desire import Grab, MoveTo, StayStill, Wander
 from core.component.component import EnergyComponent, MetaDataComponent, MovementComponent
 
 from core.entity import Entity
@@ -170,10 +170,6 @@ class Loader(object):
   def _load_wander(self, move_dict) -> Wander:
     self._check_type(move_dict, Wander)
     return Wander(None, world=self.world)
-
-  def _load_wanderfollow(self, wanderfollow_dict):
-    self._check_type(wanderfollow_dict, WanderFollow)
-    return WanderFollow(None, self.world)
 
   def _load_grab(self, grab_dict) -> Grab:
     self._check_type(grab_dict, Grab)
