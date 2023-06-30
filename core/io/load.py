@@ -142,9 +142,10 @@ class Loader(object):
       desire=creature_desire,
       properties=properties_dict,
       sensor=sensors[0] if sensors else RadialSensor(50),
-      movement=movement_component
+      movement=movement_component,
+      brain=BrainComponent(None),
+      energy=EnergyComponent()
     )
-    creature.entity.properties = properties_dict
 
     return creature
 
