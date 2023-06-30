@@ -1,0 +1,39 @@
+---
+frame:
+  world:
+    width:  200
+    height: 200
+    entities:
+      - id: 'agent'
+        type: creature
+        position: {x: 25, y: 40}
+        properties:
+          name: Follower
+          color: blue
+          speed: 1
+          grab_radius: 7.0
+          size: 5
+        desire: Wander
+        brain:
+        sensors:
+          - radius: 20.0
+      - id: res001
+        type: Resource
+        position: {x: 100, y: 50}
+        properties:
+          size: 2
+      - id: res002
+        type: Resource
+        position: {x: 20, y: 50}
+        properties:
+          size: 2
+      - id: res003
+        type: Resource
+        position: {x: 30, y: 45}
+        properties:
+          size: 2
+      - id: res004
+        type: Resource
+        position: {x: 100, y: 98}
+        properties:
+          size: 2

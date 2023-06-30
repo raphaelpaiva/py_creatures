@@ -1,6 +1,8 @@
-from typing import Any, Callable, Dict, Type
+from curses import meta
+from typing import Any, Callable, Dict, List, Type
 import yaml
 from core.brain.brain_component import BrainComponent
+from core.creatures.creature import Creature
 from core.desire import Grab, MoveTo, StayStill, Wander
 from core.component.component import EnergyComponent, MetaDataComponent, MovementComponent
 
@@ -8,7 +10,7 @@ from core.entity import Entity
 from core.render_system.graphics import SimpleGraphicComponent
 from core.location.location import Location, Somewhere
 from core.primitives import Vector
-from core.sensor.sensor import RadialSensor
+from core.sensor.sensor import RadialSensor, Sensor
 from core.sensor.sensor_component import SensorComponent
 from ..desire.desire_abstract import Desire, DesireComponent
 from ..world import Frame, World
@@ -34,7 +36,7 @@ class Loader(object):
     for cls in classes:
       class_name = cls if isinstance(cls, str) else  cls.__name__
       obj_type = obj_dict if isinstance(obj_dict, str) else obj_dict.get('type', class_name)
-      if obj_type == class_name: return
+      if obj_type.lower() == class_name.lower(): return
       
     raise ParseException(f"Type '{obj_type}' is not compatible with '{class_name}'")
 
@@ -76,9 +78,13 @@ class Loader(object):
         entity.add_component(DesireComponent(desire))
 
   def _load_entity(self, entity_dict: Dict) -> Entity:
-    self._check_type(entity_dict, Entity, 'Resource')
+    self._check_type(entity_dict, Entity, 'Resource', 'Creature')
 
     entity_type   = entity_dict.get('type', Entity.__name__)
+
+    if (entity_type.lower() == Creature.__name__.lower()):
+      return self._load_creature(entity_dict).entity
+
     entity_id     = entity_dict.get("id")
     position_dict = entity_dict.get("position", 'Somewhere')
     size          = entity_dict.get("size", 10)
@@ -87,7 +93,6 @@ class Loader(object):
     
     desire_dict     = entity_dict.get("desire", default_desire)
     properties_dict = entity_dict.get('properties', {})
-    has_brain_dict  = 'brain' in entity_dict
     sensor_list     = entity_dict.get('sensors', [])
 
     position = Somewhere(self.world.width, self.world.height).get() if position_dict == 'Somewhere' else self._load_vector(position_dict)
@@ -99,8 +104,8 @@ class Loader(object):
     entity.add_component(MovementComponent(position))
     entity.add_component(MetaDataComponent(properties_dict.get('name', entity_id), entity_type))
     
-    if isinstance(sensor_list, list):
-      sensors = [RadialSensor(s['radius']) for s in sensor_list]
+    sensors = self._load_sensors(sensor_list)
+    if sensors:
       entity.add_component(SensorComponent(sensors))
     
     if not entity.is_resource:
@@ -112,7 +117,38 @@ class Loader(object):
 
     return entity
 
-  def _load_vector(self, vector_dict: Dict[str, float]):
+  def _load_sensors(self, sensor_list: List[Dict[str, Any]]) -> List[Sensor]:
+    if isinstance(sensor_list, list):
+      return [RadialSensor(s['radius']) for s in sensor_list]
+    return []
+
+  def _load_creature(self, creature_dict: Dict[str, Any]) -> Creature:
+    creature_id        = creature_dict.get('id', f"creature_{id(creature_dict)}")
+    properties_dict    = creature_dict.get('properties', {})
+
+    creature_metadata  = MetaDataComponent(properties_dict.get('name', creature_id), Creature.__name__)
+    creature_desire    = self._load_desire(creature_dict.get('desire')) if 'desire' in creature_dict else StayStill(None)
+
+    sensors_list       = creature_dict.get('sensors', [])
+    sensors            = self._load_sensors(sensors_list)
+
+    position_dict      = creature_dict.get('position', None)
+    position           = Somewhere(self.world.width, self.world.height).get() if position_dict == 'Somewhere' else self._load_vector(position_dict)
+    movement_component = MovementComponent(position)
+
+    creature           = Creature(
+      creature_id,
+      metadata=creature_metadata,
+      desire=creature_desire,
+      properties=properties_dict,
+      sensor=sensors[0] if sensors else RadialSensor(50),
+      movement=movement_component
+    )
+    creature.entity.properties = properties_dict
+
+    return creature
+
+  def _load_vector(self, vector_dict: Dict[str, float]) -> Vector:
     if not vector_dict: return None
     self._check_type(vector_dict, Vector)
     x = vector_dict['x']

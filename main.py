@@ -27,9 +27,7 @@ def main():
   
   try:
     frame = Loader(filename).load()
-    creature = Creature('creature')
     world: World = frame.world
-    creature.desire = Wander(creature.entity, world=world)
     world.add_system(BrainSystem(world))
     world.add_system(SensorSystem())
     world.add_system(DesireSystem())
@@ -37,7 +35,6 @@ def main():
     world.add_system(MovementSystem(world))
     world.add_system(EnergySystem(world))
     world.add_system(RenderSystem(world))
-    world.add(creature.entity)
     
     if benchmark:
       benchmark_loop(world)
