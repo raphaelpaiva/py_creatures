@@ -4,11 +4,10 @@ frame:
     width:  200
     height: 200
     entities:
-      - id: 'agent'
+      - id: 'agent_000'
         type: creature
         position: {x: 25, y: 40}
         properties:
-          name: Follower
           color: red
           speed: 1
           grab_radius: 7.0
@@ -16,7 +15,71 @@ frame:
         desire: Wander
         brain:
         sensors:
-          - radius: 50.0
+          - radius: 25.0
+      - id: 'agent_001'
+        type: creature
+        position: {x: 190, y: 36}
+        properties:
+          color: blue
+          speed: 1
+          grab_radius: 7.0
+          size: 5
+        desire: Wander
+        brain:
+        sensors:
+          - radius: 15.0
+      - id: 'agent_003'
+        type: creature
+        position: {x: 136, y: 195}
+        properties:
+          color: green
+          speed: 1
+          grab_radius: 7.0
+          size: 5
+        desire: Wander
+        brain:
+        sensors:
+          - radius: 27.0
+      - id: 'agent_003'
+        type: creature
+        position: {x: 136, y: 195}
+        properties:
+          color: yellow
+          speed: 1
+          grab_radius: 7.0
+          size: 5
+        desire: Wander
+        brain:
+        sensors:
+          - radius: 27.0
+      - id: 'agent_004'
+        type: creature
+        position: {x: 185, y: 43}
+        properties:
+          color: cyan
+          speed: 1
+          grab_radius: 7.0
+          size: 5
+        desire: Wander
+        brain:
+        sensors:
+          - radius: 30.0
+      - id: 'agent_005'
+        type: creature
+        position: {x: 172, y: 133}
+        properties:
+          color: gold
+          speed: 1
+          grab_radius: 7.0
+          size: 5
+        desire: Wander
+        brain:
+        sensors:
+          - radius: 40.0
+      - id: res000
+        type: Resource
+        properties:
+          size: 2
       - id: res001
         type: Resource
         position: {x: 100, y: 50}
@@ -35,5 +98,25 @@ frame:
       - id: res004
         type: Resource
         position: {x: 100, y: 98}
+        properties:
+          size: 2
+      - id: res005
+        type: Resource
+        properties:
+          size: 2
+      - id: res006
+        type: Resource
+        properties:
+          size: 2
+      - id: res007
+        type: Resource
+        properties:
+          size: 2
+      - id: res008
+        type: Resource
+        properties:
+          size: 2
+      - id: res009
+        type: Resource
         properties:
           size: 2
