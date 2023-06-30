@@ -1,5 +1,6 @@
 from textwrap import dedent
 import pygame as pg
+from core.component.component import EnergyComponent
 from core.entity import Entity
 from core.primitives import Vector
 from core.desire import DesireComponent, MoveTo
@@ -29,6 +30,7 @@ class EntityWidget(TextWidget):
           Type: {self.entity.type}
           Move: {self._movement()}
           Desire:{self._desire()}
+          Energy: {self._energy()}
         """
       )
     else:
@@ -69,5 +71,12 @@ class EntityWidget(TextWidget):
           return f"MoveTo({desire.location})"
         case _:
           return desire_component.desire.__class__.__name__
+    else:
+      return ''
+  
+  def _energy(self) -> str:
+    energy_component: EnergyComponent = self.entity.get_component(EnergyComponent)
+    if energy_component:
+      return f"{energy_component.current:.1f}/{energy_component.max_energy:.1f} - {energy_component.rate:.4f}"
     else:
       return ''

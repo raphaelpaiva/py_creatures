@@ -33,16 +33,8 @@ class EnergyComponent(Component):
   def __init__(self, max_energy: float = 100.0, rate: float = 0.01) -> None:
     super().__init__()
     self.max_energy = max_energy
-    self._current    = max_energy
+    self.current   = max_energy
     self.rate       = rate
-  
-  @property
-  def current(self) -> float:
-    return self._current
-  
-  @current.setter
-  def current(self, value: float):
-    self._current = min(self.max_energy, value)
 
   def __str__(self) -> str:
     return f"{int(self.current)}/{int(self.max_energy)}"
