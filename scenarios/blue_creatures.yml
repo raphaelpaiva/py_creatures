@@ -9,14 +9,14 @@ frame:
         position: {x: 25, y: 40}
         properties:
           name: Follower
-          color: blue
+          color: red
           speed: 1
           grab_radius: 7.0
           size: 5
         desire: Wander
         brain:
         sensors:
-          - radius: 20.0
+          - radius: 50.0
       - id: res001
         type: Resource
         position: {x: 100, y: 50}

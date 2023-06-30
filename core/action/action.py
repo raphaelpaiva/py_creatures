@@ -46,7 +46,7 @@ class Grab(Action):
     if self.target.is_resource:
       energy_component = self.entity.get_component(EnergyComponent)
       energy_component.current = min(100, energy_component.current + 50)
-      self.target.mark_remove = True
+      self.target.remove = True
   
   def to_dict(self) -> Dict[str, Any]:
     return {

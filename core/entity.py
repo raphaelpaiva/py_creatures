@@ -16,7 +16,7 @@ class Entity(object):
   def __init__(self, id: str) -> None:
     super().__init__()
     self.id: str = id if id is not None else str(_next_id())
-    self.mark_remove: bool = False
+    self.remove: bool = False
     self.properties: Dict[str, Any] = {}
     self.type = self.__class__.__name__
     self._components: Dict[str, Component] = {}
@@ -32,6 +32,9 @@ class Entity(object):
     
     return self._components.get(name, None)
   
+  def mark_remove(self):
+    self.remove = True
+
   @property
   def metadata(self) -> MetaDataComponent:
     return self._components.get(MetaDataComponent.__name__, DEFAULT_METADATA_COMPONENT)
@@ -77,6 +80,6 @@ class Entity(object):
       "id": self.id,
       "position": components_dict,
       "size": self.size,
-      "mark_remove": self.mark_remove,
+      "mark_remove": self.remove,
       "properties": self.properties
     }

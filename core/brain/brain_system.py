@@ -20,7 +20,7 @@ class BrainSystem(System):
   
   def update(self, entities: List[Entity]):
     for entity in entities:
-        brain_component = entity.get_component(BrainComponent)
+        brain_component: BrainComponent = entity.get_component(BrainComponent)
         if brain_component:
           creature = brain_component.creature
           if creature.wandering:
@@ -28,14 +28,19 @@ class BrainSystem(System):
             if detected_entities:
               target = self.choose_target(brain_component, detected_entities)
               self.follow(creature, target)
+          if creature.hungry:
+            if creature.following:
+              # TODO: Fix this mess
+              if creature.target and creature.target.distance(creature.position) <= creature.properties.get('grab_radius', 0):
+                creature.target.mark_remove()
+                creature.energy.current += 50
+                self.wander(creature) # TODO: there should be a desire/behavior stack
 
-          # if hungry(entity):
-          #   desire_component: DesireComponent = entity.get_component(DesireComponent)
-            
-            #desire_component.desire = SearchForFood(entity)
+  def wander(self, creature: Creature):
+    creature.desire = Wander(None, world=self.world) # TODO: Movement System should restrict bounds, not Desire.
   def follow(self, creature: Creature, target: Entity):
     if target:
-      creature.desire = MoveTo(creature.entity, Location(lambda: target.movement.position, identifier=target.id), world=self.world)
+      creature.desire = MoveTo(creature.entity, Location(target, identifier=target.id), world=self.world)
   
   def choose_target(self, brain: BrainComponent, detected_entities: Set[Entity]) -> Entity:
     if brain.hungry:  
@@ -55,13 +60,6 @@ class BrainSystem(System):
         return nearest
       else:
         return None
-
-def hungry(entity: Entity) -> bool:
-  energy_component: EnergyComponent = entity.get_component(EnergyComponent)
-  if energy_component:
-    return energy_component.current < 50.0
-
-  return False
 
 class Consciousness(object):
   def __init__(self, entity: Entity) -> None:

@@ -1,7 +1,7 @@
 from typing import Any, Dict, Set
 from core.brain.brain_component import BrainComponent
 from core.component.component import EnergyComponent, MetaDataComponent, MovementComponent
-from core.desire import StayStill, Wander
+from core.desire import MoveTo, StayStill, Wander
 from core.desire.desire_abstract import Desire, DesireComponent
 from core.entity import Entity
 from core.primitives import Vector
@@ -21,6 +21,7 @@ class Creature(object):
     graphics:  SimpleGraphicComponent = None,
     properties: Dict[str, Any]        = {}) -> None:
     self.entity            = Entity(id)
+    self.properties        = properties
     self.entity.properties = properties
     self.movement          = movement
     self.metadata          = metadata if metadata else MetaDataComponent(self.entity.id, self.__class__.__name__)
@@ -74,3 +75,18 @@ class Creature(object):
   def detected(self) -> Set[Entity]:
     return self.sensor_component.detected
   
+  @property
+  def hungry(self) -> bool:
+    return self.brain.hungry
+  
+  @property
+  def following(self) -> bool:
+    return isinstance(self.desire, MoveTo)
+  
+  @property
+  def target(self) -> Entity | None:
+    return self.desire.location.target if self.following and isinstance(self.desire.location.target, Entity) else None
+  
+  @property
+  def position(self) -> Vector:
+    return self.movement.position
