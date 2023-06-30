@@ -2,7 +2,6 @@ from typing import List, Set
 
 from pygame import init
 from core.brain.brain_component import BrainComponent
-from core.component.component import EnergyComponent
 from core.creatures.creature import Creature
 from core.desire import Wander
 from core.desire.MoveTo import MoveTo

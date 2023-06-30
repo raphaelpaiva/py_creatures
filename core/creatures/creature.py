@@ -11,7 +11,7 @@ from core.sensor.sensor_component import SensorComponent
 
 class Creature(object):
   def __init__(self,
-    id: str,
+    id:        str,
     movement:  MovementComponent      = MovementComponent(Vector(100, 100)),
     metadata:  MetaDataComponent      = None,
     brain:     BrainComponent         = BrainComponent(None),

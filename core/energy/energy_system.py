@@ -14,7 +14,7 @@ class EnergySystem(System):
   
   def update(self, entities: List[Entity]):
     for entity in entities:
-      energy_component = entity.get_component(EnergyComponent)
+      energy_component: EnergyComponent = entity.get_component(EnergyComponent)
       if energy_component:
         energy_component.current -= energy_component.rate * self.world.dt
         energy_component.current = max(0, energy_component.current)
