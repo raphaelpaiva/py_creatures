@@ -1,18 +1,17 @@
-from curses import meta
 from typing import Any, Callable, Dict, List, Type
 import yaml
-from core.brain.brain_component import BrainComponent
-from core.creatures.creature import Creature
-from core.desire import Grab, MoveTo, StayStill, Wander
+from app.brain.brain_component import BrainComponent
+from app.creatures.creature import Creature
+from app.desire import Grab, MoveTo, StayStill, Wander
 from core.component.component import EnergyComponent, MetaDataComponent, MovementComponent
 
 from core.entity import Entity
-from core.render_system.graphics import SimpleGraphicComponent
-from core.location.location import Location, Somewhere
+from app.render_system.graphics import SimpleGraphicComponent
+from app.location import Location, Somewhere
 from core.primitives import Vector
-from core.sensor.sensor import RadialSensor, Sensor
-from core.sensor.sensor_component import SensorComponent
-from ..desire.desire_abstract import Desire, DesireComponent
+from app.sensor.sensor import RadialSensor, Sensor
+from app.sensor.sensor_component import SensorComponent
+from app.desire.desire_abstract import Desire, DesireComponent
 from ..world import Frame, World
 
 class ParseException(Exception):

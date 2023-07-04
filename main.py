@@ -2,20 +2,18 @@ import sys
 from time import time
 import traceback
 
-from core.action.action import ActionSystem
-from core.brain.brain_system import BrainSystem
-from core.creatures.creature import Creature
-from core.desire import Wander
-from core.desire.desire_system import DesireSystem
-from core.energy import EnergySystem
+from app.action import ActionSystem
+from app.brain.brain_system import BrainSystem
+from app.desire import DesireSystem
+from app.energy import EnergySystem
 
 from core.io.load import Loader, ParseException
 from core.movement import MovementSystem
-from core.render_system import RenderSystem
-from core.sensor.sensor_system import SensorSystem
+from app.render_system import RenderSystem
+from app.sensor.sensor_system import SensorSystem
 from core.world import World
 
-DEFAULT_FILENAME = 'scenarios/somecreatures.yml'
+DEFAULT_FILENAME = 'scenarios/blue_creatures.yml'
 DEFAULT_FRAME_NUMBER = 'infinite'
 BENCHMARK_FRAME_NUMBER = 1000
 
