@@ -1,5 +1,2 @@
 pyyaml
-matplotlib
-sv_ttk
 pygame
-numpy
