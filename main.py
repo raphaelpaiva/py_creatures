@@ -1,13 +1,14 @@
 import sys
 from time import time
 import traceback
+import logging
 
 from app.action import ActionSystem
 from app.brain.brain_system import BrainSystem
 from app.desire import DesireSystem
 from app.energy import EnergySystem
 
-from core.io.load import Loader, ParseException
+from app.io import Loader, ParseException
 from core.movement import MovementSystem
 from app.render_system import RenderSystem
 from app.sensor.sensor_system import SensorSystem
@@ -21,6 +22,10 @@ DEFAULT_FRAME_NUMBER = 'infinite'
 DEFAULT_MODE = MODE_SIMULATION
 BENCHMARK_FRAME_NUMBER = 1000
 
+logging.basicConfig(
+  level=logging.DEBUG,
+  format='%(asctime)s [%(levelname)s] %(filename)s.%(name)s.%(funcName)s(): %(message)s'
+)
 
 class Application(object):
   def __init__(self, filename: str, mode: str = DEFAULT_MODE):
