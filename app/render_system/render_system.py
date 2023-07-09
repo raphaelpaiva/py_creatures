@@ -11,13 +11,13 @@ from app.render_system.widgets.text_widget import TextWidget
 from core.system import System
 from core.world import World
 from .constants import (FPS_LIMIT, GREEN, ORIGIN, SCREEN_HEIGHT, SCREEN_WIDTH, WHITE,
-                        UISize)
+                        UISize, WORLD_MARGIN)
 from .mouse_handler import mouse
 from .stats import Stats
 
 
 class RenderSystem(System):
-  def __init__(self, world: World) -> None:
+  def __init__(self, world: World, app) -> None:
     super().__init__()
     self.top_hovering_widget = None
     self.world = world
@@ -26,10 +26,11 @@ class RenderSystem(System):
     self.fps_limit = FPS_LIMIT
     self.ui_stack: List[Widget] = []
     self.mouse = mouse
+    self.app = app
     
     pg.init()
     self.screen = pg.display.set_mode(self.screen_size.as_tuple())
-    self.font = pg.font.SysFont(None, 18)
+    self.font = pg.font.SysFont('monospace', 18)
 
     self.clock = pg.time.Clock()
     self.stats.frametime = self.clock.tick(self.fps_limit)
@@ -57,16 +58,16 @@ class RenderSystem(System):
     )
     
     self.stats_widget = TextWidget(
-      self.screen, 'Framerate: 0000.0 fps\nOpa!',
-      position=Vector(self.screen.get_width() - 225, 0),
+      self.screen, 'Framerate: 0000.0 fps\nplaceholder\nplaceholder\nplaceholder\nplaceholder',
+      position=Vector(self.world_widget.position.x + self.world_widget.style.size.width + WORLD_MARGIN, 0),
       style=Style(font=self.font)
     )
     self.entity_widget = EntityWidget(
       self.screen,
       None,
       position=Vector(
-        self.screen.get_width() - 225,
-        45 + self.stats_widget.position.y + self.stats_widget.style.size.height
+        self.world_widget.position.x + self.world_widget.style.size.width + WORLD_MARGIN,
+        WORLD_MARGIN + self.stats_widget.position.y + self.stats_widget.style.size.height
       ),
       style=Style(font=self.font)
     )
@@ -131,6 +132,16 @@ class RenderSystem(System):
       if e.type == pg.MOUSEBUTTONUP:
         if self.top_hovering_widget:
           self.top_hovering_widget.on_mouse_up()
+      if e.type == pg.KEYUP:
+        if e.key == pg.K_ESCAPE:
+          pg.quit()
+          sys.exit()
+        if e.key == pg.K_r:
+          self.app.reset()
+        if e.key == pg.K_EQUALS:
+          self.world_widget.scale *= 2
+        if e.key == pg.K_MINUS:
+          self.world_widget.scale /= 2
       if event.type == pg.QUIT:
         pg.quit()
         sys.exit()

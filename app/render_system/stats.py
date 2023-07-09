@@ -23,7 +23,7 @@ class Stats(object):
     }
   
   def __str__(self) -> str:
-    return '\n'.join([k + ' ' + v for k,v in self.get_stats_dict().items()])
+    return '\n'.join([k + ' ' + v for k,v in self.get_stats_dict().items()]).strip()
 
   @property
   def frametime(self) -> float:
