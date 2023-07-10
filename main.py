@@ -24,7 +24,7 @@ BENCHMARK_FRAME_NUMBER = 1000
 
 logging.basicConfig(
   level=logging.DEBUG,
-  format='%(asctime)s [%(levelname)s] %(filename)s.%(name)s.%(funcName)s(): %(message)s'
+  format='%(asctime)s [%(levelname)s] %(filename)s:%(name)s.%(funcName)s(): %(message)s'
 )
 
 class Application(object):
