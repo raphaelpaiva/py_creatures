@@ -187,7 +187,7 @@ class Loader(object):
     never_satisfied = moveto_dict.get("never_satisfied", False)
 
     if not location_dict:
-      raise ParseException(f"MoveTo desire needs a location")
+      raise ParseException('MoveTo desire needs a location')
     
     location = None
     if isinstance(location_dict, str):
@@ -206,7 +206,7 @@ class Loader(object):
     location_id = moveto_dict.get("entity", None)
 
     if not location_id or not isinstance(location_id, str):
-      raise ParseException(f"Follow desire needs an entity id")
+      raise ParseException('Follow desire needs an entity id')
     
     target = self._lookup_entity(location_id)
     location = Location(self._make_location_func(target), target.name)
@@ -222,7 +222,7 @@ class Loader(object):
 
     resource_id = grab_dict.get("resource", None)
     if not resource_id:
-      raise ParseException(f"Grab desire needs a resource")
+      raise ParseException('Grab desire needs a resource')
 
     return Grab(None, lambda: self._lookup_entity(resource_id).position, world=self.world)
 
