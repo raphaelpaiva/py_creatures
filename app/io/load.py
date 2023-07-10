@@ -12,7 +12,10 @@ from core.primitives import Vector
 from app.sensor.sensor import RadialSensor, Sensor
 from app.sensor.sensor_component import SensorComponent
 from app.desire.desire_abstract import Desire, DesireComponent
-from ..world import Frame, World
+from core.world import Frame, World
+
+from .generator import GeneratorLoader, Generator
+
 
 class ParseException(Exception):
   def __init__(self, msg: str, *args: object) -> None:
@@ -21,6 +24,7 @@ class ParseException(Exception):
   
   def __str__(self) -> str:
     return f"Parse exception: {self.msg}"
+
 
 class Loader(object):
   def __init__(self, filename) -> None:
@@ -55,11 +59,17 @@ class Loader(object):
     
     width  = world_dict.get('width', 100)
     height = world_dict.get('height', 100)
+    generator_dicts_list: List[Dict[str, Any]] = world_dict.get('generators', [])
     entities = world_dict.get('entities', [])
 
     world = World(width, height)
 
     self.world = world
+
+    generator_loader = GeneratorLoader()
+    for generator_dict in generator_dicts_list:
+      generator = generator_loader.load(generator_dict)
+      entities.extend(generator.generate())
 
     for entity_dict in entities:
       world.add(self._load_entity(entity_dict))
@@ -177,7 +187,7 @@ class Loader(object):
     never_satisfied = moveto_dict.get("never_satisfied", False)
 
     if not location_dict:
-      raise ParseException(f"MoveTo desire needs a location")
+      raise ParseException('MoveTo desire needs a location')
     
     location = None
     if isinstance(location_dict, str):
@@ -196,7 +206,7 @@ class Loader(object):
     location_id = moveto_dict.get("entity", None)
 
     if not location_id or not isinstance(location_id, str):
-      raise ParseException(f"Follow desire needs an entity id")
+      raise ParseException('Follow desire needs an entity id')
     
     target = self._lookup_entity(location_id)
     location = Location(self._make_location_func(target), target.name)
@@ -212,7 +222,7 @@ class Loader(object):
 
     resource_id = grab_dict.get("resource", None)
     if not resource_id:
-      raise ParseException(f"Grab desire needs a resource")
+      raise ParseException('Grab desire needs a resource')
 
     return Grab(None, lambda: self._lookup_entity(resource_id).position, world=self.world)
 
