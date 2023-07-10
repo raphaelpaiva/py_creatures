@@ -25,12 +25,12 @@ class Generator(object):
   def generate(self) -> List[Dict[str, Any]]:
     result = []
     for i in range(self.quantity):
-      object = {
+      obj = {
         'id': f"{self.id_prefix}{i}",
         'type': self.type
       }
-      object.update(copy.deepcopy(self.template))
-      result.append(object)
+      obj.update(copy.deepcopy(self.template))
+      result.append(obj)
 
     return result
 
@@ -118,39 +118,3 @@ class Template(object):
     self.type = type
     self.id_prefix = id_prefix if id_prefix else f"{type}_"
     self.properties = properties
-
-
-def main():
-  try:
-    logging.basicConfig(
-      level=logging.DEBUG,
-      format='%(asctime)s [%(levelname)s] %(filename)s.%(name)s.%(funcName)s(): %(message)s'
-    )
-    generator = GeneratorLoader().load({
-      'random_seed': 1234,
-      'quantity': 2,
-      'type': 'creature',
-      'id_prefix': 'creature_',
-      'template': {
-        'position': 'Somewhere',
-        'properties': {
-          'color': 'green',
-          'speed': 1,
-          'grab_radius': 7.0,
-          'size': 7,
-          'desire': 'Wander'
-        },
-        'sensors': [
-          {'radius': 40}
-        ]
-      }
-    })
-
-    print(GeneratorLoader().dump(generator))
-    print(json.dumps(generator.generate(), indent=2))
-  except:
-    pass
-
-
-if __name__ == '__main__':
-  main()
