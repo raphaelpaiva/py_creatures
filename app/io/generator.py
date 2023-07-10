@@ -1,10 +1,11 @@
-import json
+import logging
 import random
 import re
 import time
 import logging
 import copy
 from typing import List, Dict, Any, Callable
+from .random_param import RandomParam
 
 
 class Generator(object):
@@ -14,6 +15,7 @@ class Generator(object):
                quantity: int = 10,
                id_prefix: str = None,
                template: Dict[str, Any] = None):
+    self.log = logging.getLogger(self.__class__.__name__)
     self.type = generator_type
     self.id_prefix = id_prefix
     self.random_seed: Any = random_seed
@@ -30,9 +32,28 @@ class Generator(object):
         'type': self.type
       }
       obj.update(copy.deepcopy(self.template))
+      self.resolve_random_params(obj)
       result.append(obj)
 
     return result
+
+  def resolve_random_params(self, obj: Any):
+    if isinstance(obj, dict):
+      for key, value in obj.items():
+        if isinstance(value, dict):
+          self.resolve_random_params(value)
+        elif isinstance(value, list):
+          for item in value:
+            self.resolve_random_params(item)
+        elif isinstance(value, str):
+          pattern = re.compile(r".*random\((.*)\).*")
+          if isinstance(value, str):
+            match = pattern.match(value)
+            if match:
+              params = match.groups()[0] if match.groups() else ''
+              random_value = RandomParam(params).get()
+              obj[key] = random_value
+              self.log.debug(f"Setting random value: {key} = {random_value}")
 
 
 class ValidationException(Exception):
@@ -44,6 +65,7 @@ class GeneratorLoader(object):
   def __init__(self):
     self.log = logging.getLogger(self.__class__.__name__)
     self.current_dict = None
+    self.random_seed = None
 
   def load(self, generator_dict: Dict[str, Any]) -> Generator:
     self.current_dict = generator_dict
@@ -57,6 +79,7 @@ class GeneratorLoader(object):
       validation_function=lambda x: x if random.seed(x) is None else None,
       default_value=time.time_ns()
     )
+    self.random_seed = random_seed
     quantity = self.validate(
       name='quantity',
       validation_function=int,
@@ -113,8 +136,3 @@ class GeneratorLoader(object):
         raise ValidationException(e)
 
 
-class Template(object):
-  def __init__(self, type: str, properties: Dict[str, Any], id_prefix: str = None):
-    self.type = type
-    self.id_prefix = id_prefix if id_prefix else f"{type}_"
-    self.properties = properties
