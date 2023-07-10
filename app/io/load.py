@@ -1,5 +1,6 @@
 from typing import Any, Callable, Dict, List, Type
 import yaml
+import logging
 from app.brain.brain_component import BrainComponent
 from app.creatures.creature import Creature
 from app.desire import Grab, MoveTo, StayStill, Wander
@@ -28,6 +29,7 @@ class ParseException(Exception):
 
 class Loader(object):
   def __init__(self, filename) -> None:
+    self.log = logging.getLogger(self.__class__.__name__)
     self.filename = filename
     self.loader_methods: Dict[str, Callable] = {f: getattr(Loader, f) for f in dir(Loader) if callable(getattr(Loader, f)) and "_load" in f}
     self.entity_by_id: Dict[str, Entity] = {}
@@ -239,6 +241,7 @@ class Loader(object):
     return entity
 
   def load(self) -> Frame:
+    self.log.info(self.filename)
     content = self._load_yaml(self.filename)
     return self._load_frame(content['frame'])
   
