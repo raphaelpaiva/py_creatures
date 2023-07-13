@@ -135,7 +135,7 @@ class WorldWidget(Widget):
       elif graphic.shape == 'rect':
         pg.draw.rect(
           self.surface,
-          GREEN,
+          graphic_color,
           pg.Rect(
             graphic_pos.x - graphic_size / 2,
             graphic_pos.y - graphic_size / 2,
