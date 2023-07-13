@@ -1,26 +1,27 @@
 ---
 frame:
   world:
-    width:  200
-    height: 200
+    width:  100
+    height: 100
     generators:
       - type: creature
         random_seed: 12345
-        quantity: 15
+        quantity: 3
         id_prefix: 'creature_'
         template:
           position: Somewhere
           properties:
             color: random(pink,magenta,grey,brown,blue,chocolate,darkslategrey)
-            speed: random(1,5)
+            speed: 1
             grab_radius: random(3.0,7)
             size: random(2,5)
+            diet: random(carnivore,herbivore)
           desire: Wander
           brain:
           sensors:
             - radius: random(20,50)
       - type: Resource
-        quantity: 20
+        quantity: 10
         template:
           properties:
             size: random(1,3)

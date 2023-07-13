@@ -11,6 +11,7 @@ from app.sensor.sensor_component import SensorComponent
 from core.system import System
 from core.world import World
 
+
 class BrainSystem(System):
   def __init__(self, world: World) -> None:
     super().__init__()
@@ -42,22 +43,17 @@ class BrainSystem(System):
   
   def choose_target(self, brain: BrainComponent, detected_entities: Set[Entity]) -> Entity:
     if brain.hungry:  
-      return self.nearest_resource(brain, detected_entities)
+      return self.nearest_edible(brain, detected_entities)
 
-  def nearest_resource(self, brain: BrainComponent, detected_entities: Set[Entity]) -> Entity | None:
-      resources = list(filter(lambda e: e.is_resource, detected_entities))
-      if resources:
-        nearest: Entity = resources[0]
-        nearest_distance = brain.creature.entity.distance(nearest)
-        for resource in resources:
-          distance = brain.creature.entity.distance(resource)
-          if distance < nearest_distance:
-            nearest_distance = distance
-            nearest = resource
-        
-        return nearest
-      else:
-        return None
+  def nearest_edible(self, brain: BrainComponent, detected_entities: Set[Entity]) -> Entity | None:
+      edibles = sorted(
+        list(
+          filter(
+            lambda e: brain.is_edible(e), detected_entities)
+          ),
+        key=lambda x: x.distance(brain.creature.entity)
+      )
+      return edibles[0] if edibles else None
 
 class Consciousness(object):
   def __init__(self, entity: Entity) -> None:

@@ -8,6 +8,12 @@ from core.primitives import Vector
 from app.render_system.graphics import SimpleGraphicComponent
 from app.sensor.sensor import RadialSensor, Sensor
 from app.sensor.sensor_component import SensorComponent
+from app.brain.reasoners.diet import HerbivoreDietReasoner, CarnivoreDietReasoner
+
+DIET_REASONERS = {
+  'herbivore': HerbivoreDietReasoner,
+  'carnivore': CarnivoreDietReasoner
+}
 
 class Creature(object):
   def __init__(self,
@@ -20,13 +26,16 @@ class Creature(object):
     energy:    EnergyComponent        = EnergyComponent(),
     graphics:  SimpleGraphicComponent = None,
     properties: Dict[str, Any]        = {}) -> None:
-    self.entity            = Entity(id)
+    self.entity            = Entity(id, entity_type=self.__class__.__name__)
     self.properties        = properties
     self.entity.properties = properties
     self.movement          = movement
     self.metadata          = metadata if metadata else MetaDataComponent(self.entity.id, self.__class__.__name__)
     self.brain             = brain if brain else BrainComponent(self)
-    
+
+    diet = self.properties.get('diet', 'herbivore')
+    self.brain.diet_reasoner = DIET_REASONERS.get(diet)()
+
     self.entity.add_component(self.metadata)
     
     self.sensor           = sensor

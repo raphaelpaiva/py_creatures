@@ -12,14 +12,15 @@ def _next_id() -> int:
   global _ENTITY_IDS
   _ENTITY_IDS += 1
   return _ENTITY_IDS
- 
+
+
 class Entity(object):
-  def __init__(self, id: str) -> None:
+  def __init__(self, id: str, entity_type: str = None) -> None:
     super().__init__()
     self.id: str = id if id is not None else str(_next_id())
     self.remove: bool = False
     self.properties: Dict[str, Any] = {}
-    self.type = self.__class__.__name__
+    self.type = entity_type if entity_type else self.__class__.__name__
     self._components: Dict[str, Component] = {}
 
   def add_component(self, component: Component):

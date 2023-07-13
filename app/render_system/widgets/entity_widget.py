@@ -4,11 +4,11 @@ from core.component.component import EnergyComponent
 from core.entity import Entity
 from core.primitives import Vector
 from app.desire import DesireComponent, MoveTo
+from app.brain.brain_component import BrainComponent
 from app.render_system.constants import ORIGIN
 from .style import Style
 from .text_widget import TextWidget
 import app
-import core
 
 
 class EntityWidget(TextWidget):
@@ -27,11 +27,12 @@ class EntityWidget(TextWidget):
     if self.entity:
       return dedent(
         f"""
-          Id:{self._id()}
-          Type: {self.entity.type}
-          Move: {self._movement()}
-          Desire:{self._desire()}
-          Energy: {self._energy()}
+        Id:{self._id()}
+        Type: {self.entity.type}
+        Move: {self._movement()}
+        Desire:{self._desire()}
+        Energy: {self._energy()}
+        Brain: {self._brain()}
         """
       )
     else:
@@ -79,5 +80,15 @@ class EntityWidget(TextWidget):
     energy_component: EnergyComponent = self.entity.get_component(EnergyComponent)
     if energy_component:
       return f"{energy_component.current:.1f}/{energy_component.max_energy:.1f} - {energy_component.rate:.4f}"
+    else:
+      return ''
+
+  def _brain(self) -> str:
+    brain_component: BrainComponent = self.entity.get_component(BrainComponent)
+    if brain_component:
+      return f"""
+          hunger thresh.: {brain_component.hunger_threshold}
+          diet: {brain_component.diet_reasoner.__class__.__name__}
+        """
     else:
       return ''
