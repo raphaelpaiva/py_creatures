@@ -8,6 +8,16 @@ from core.primitives import Vector
 from app.render_system.graphics import SimpleGraphicComponent
 from app.sensor.sensor import RadialSensor, Sensor
 from app.sensor.sensor_component import SensorComponent
+from app.brain.reasoners.diet import HerbivoreDietReasoner, CarnivoreDietReasoner
+
+HERBIVORE = 'herbivore'
+CARNIVORE = 'carnivore'
+
+DIET_REASONERS = {
+  HERBIVORE: HerbivoreDietReasoner,
+  CARNIVORE: CarnivoreDietReasoner
+}
+
 
 class Creature(object):
   def __init__(self,
@@ -20,13 +30,16 @@ class Creature(object):
     energy:    EnergyComponent        = EnergyComponent(),
     graphics:  SimpleGraphicComponent = None,
     properties: Dict[str, Any]        = {}) -> None:
-    self.entity            = Entity(id)
+    self.entity            = Entity(id, entity_type=self.__class__.__name__)
     self.properties        = properties
     self.entity.properties = properties
     self.movement          = movement
     self.metadata          = metadata if metadata else MetaDataComponent(self.entity.id, self.__class__.__name__)
     self.brain             = brain if brain else BrainComponent(self)
-    
+
+    diet = self.properties.get('diet', 'herbivore')
+    self.brain.diet_reasoner = DIET_REASONERS.get(diet)()
+
     self.entity.add_component(self.metadata)
     
     self.sensor           = sensor
@@ -44,7 +57,13 @@ class Creature(object):
     
     self.graphics = graphics if graphics else SimpleGraphicComponent(self.entity)
     self.entity.add_component(self.graphics)
-  
+
+  def distance(self, entity: Entity) -> float:
+    return self.entity.distance(entity)
+
+  def in_grab_range(self, entity: Entity) -> bool:
+    return self.distance(entity) <= self.grab_radius
+
   @property
   def desire(self) -> Desire:
     return self.desire_component.desire
@@ -90,3 +109,15 @@ class Creature(object):
   @property
   def position(self) -> Vector:
     return self.movement.position
+
+  @property
+  def is_carnivore(self) -> bool:
+    return self.properties.get('diet', 'herbivore') == CARNIVORE
+
+  @property
+  def is_herbivore(self) -> bool:
+    return self.properties.get('diet', 'herbivore') == HERBIVORE
+
+  @property
+  def grab_radius(self) -> float:
+    return self.properties.get('grab_radius', 0.0)

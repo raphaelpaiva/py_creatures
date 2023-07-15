@@ -5,3 +5,4 @@ from .MoveRelative import MoveRelative
 from .MoveTo import MoveTo
 from .StayStill import StayStill
 from .Wander import Wander
+from .move_away import MoveAway

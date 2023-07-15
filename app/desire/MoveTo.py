@@ -14,7 +14,7 @@ class MoveTo(Desire):
     self.never_satisfied = never_satisfied
     self.world = world
   
-  def run(self):
+  def run(self, world: World = None):
     direction = Vector.from_points(self.entity.movement.position, self.location.get()).unit()
     action_component = self.entity.get_component(ActionComponent)
     

@@ -14,6 +14,7 @@ class Action(object):
   def energy_cost(self): return 0.0
   def to_dict(self) -> Dict[str, Any]: pass
 
+
 class Move(Action):
   def __init__(self, entity: Entity, direction: Vector, energy_cost: float = DEFAULT_MOVE_ACTION_ENERGY_COST) -> None:
     super().__init__()
@@ -37,6 +38,7 @@ class Move(Action):
       "self._energy_cost": self._energy_cost
     }
 
+
 class Grab(Action):
   def __init__(self, entity: Entity, target: Entity) -> None:
     super().__init__()
@@ -44,7 +46,7 @@ class Grab(Action):
     self.target = target
   
   def run(self) -> None:
-    if self.target.is_resource:
+    if self.target:
       energy_component = self.entity.get_component(EnergyComponent)
       energy_component.current = min(100, energy_component.current + 50)
       self.target.remove = True
@@ -59,10 +61,12 @@ class ActionComponent(Component):
   def __init__(self) -> None:
     super().__init__()
     self.action: Action = None
+
   def to_dict(self) -> Dict[str, Any]:
     return {
       "action": self.action.to_dict() if self.action else None
     }
+
 
 class ActionSystem(System):
   def __init__(self) -> None:
