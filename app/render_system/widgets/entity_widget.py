@@ -1,5 +1,6 @@
-from textwrap import dedent
 import pygame as pg
+from typing import Dict
+from textwrap import dedent
 from core.component.component import EnergyComponent
 from core.entity import Entity
 from core.primitives import Vector
@@ -89,6 +90,19 @@ class EntityWidget(TextWidget):
       return f"""
           hunger thresh.: {brain_component.hunger_threshold}
           diet: {brain_component.diet_reasoner.__class__.__name__}
+          {self._neurons()}
         """
     else:
       return ''
+
+  def _neurons(self):
+    brain_component: BrainComponent = self.entity.get_component(BrainComponent)
+    if brain_component:
+      neurons: Dict[str, float] = brain_component.input_neurons
+      neurons_str = '\n  '.join([f"{k}: {v:.1f}" for k, v in neurons.items()])
+
+      return f"""
+neurons:
+  {neurons_str}
+"""
+    return ''

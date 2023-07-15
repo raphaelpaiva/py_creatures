@@ -10,10 +10,14 @@ from app.sensor.sensor import RadialSensor, Sensor
 from app.sensor.sensor_component import SensorComponent
 from app.brain.reasoners.diet import HerbivoreDietReasoner, CarnivoreDietReasoner
 
+HERBIVORE = 'herbivore'
+CARNIVORE = 'carnivore'
+
 DIET_REASONERS = {
-  'herbivore': HerbivoreDietReasoner,
-  'carnivore': CarnivoreDietReasoner
+  HERBIVORE: HerbivoreDietReasoner,
+  CARNIVORE: CarnivoreDietReasoner
 }
+
 
 class Creature(object):
   def __init__(self,
@@ -53,7 +57,13 @@ class Creature(object):
     
     self.graphics = graphics if graphics else SimpleGraphicComponent(self.entity)
     self.entity.add_component(self.graphics)
-  
+
+  def distance(self, entity: Entity) -> float:
+    return self.entity.distance(entity)
+
+  def in_grab_range(self, entity: Entity) -> bool:
+    return self.distance(entity) <= self.grab_radius
+
   @property
   def desire(self) -> Desire:
     return self.desire_component.desire
@@ -99,3 +109,15 @@ class Creature(object):
   @property
   def position(self) -> Vector:
     return self.movement.position
+
+  @property
+  def is_carnivore(self) -> bool:
+    return self.properties.get('diet', 'herbivore') == CARNIVORE
+
+  @property
+  def is_herbivore(self) -> bool:
+    return self.properties.get('diet', 'herbivore') == HERBIVORE
+
+  @property
+  def grab_radius(self) -> float:
+    return self.properties.get('grab_radius', 0.0)

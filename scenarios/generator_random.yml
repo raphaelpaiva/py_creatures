@@ -19,7 +19,7 @@ frame:
           desire: Wander
           brain:
           sensors:
-            - radius: random(20,50)
+            - radius: random(10,20)
       - type: Resource
         quantity: 10
         template:

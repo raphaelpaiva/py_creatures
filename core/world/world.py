@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import logging
 from time import time
 
 from core.entity import Entity
@@ -9,8 +11,10 @@ from copy import deepcopy
 
 from typing import Any, Dict, Iterable, List
 
+
 class World(object):
   def __init__(self, width: int = 100, height: int = 100) -> None:
+    self.log = logging.getLogger(self.__class__.__name__)
     self.TIME_RESOLUTION = 10.0
     self._height = width
     self._width  = height
@@ -26,6 +30,7 @@ class World(object):
       system.update(self.entities())
 
     for entity in [a for a in self.entities() if a.remove]:
+      self.log.info(f"Entity {entity.id} removed.")
       self.remove(entity)
     
     update_end = time()
