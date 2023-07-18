@@ -1,6 +1,6 @@
-import random
 import re
 from typing import List
+from core.random_generator import generator as random
 
 
 def get_type(param: str) -> str:

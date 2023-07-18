@@ -1,28 +1,24 @@
 import logging
-import random
 import re
 import time
 import logging
 import copy
 from typing import List, Dict, Any, Callable
 from .random_param import RandomParam
+from core.random_generator import generator as random
 
 
 class Generator(object):
   def __init__(self,
                generator_type: str,
-               random_seed: Any = time.time_ns(),
                quantity: int = 10,
                id_prefix: str = None,
                template: Dict[str, Any] = None):
     self.log = logging.getLogger(self.__class__.__name__)
     self.type = generator_type
     self.id_prefix = id_prefix
-    self.random_seed: Any = random_seed
     self.quantity: int = quantity
     self.template: Dict[str, Any] = template if template else {}
-
-    random.seed(self.random_seed)
 
   def generate(self) -> List[Dict[str, Any]]:
     result = []
@@ -65,7 +61,6 @@ class GeneratorLoader(object):
   def __init__(self):
     self.log = logging.getLogger(self.__class__.__name__)
     self.current_dict = None
-    self.random_seed = None
 
   def load(self, generator_dict: Dict[str, Any]) -> Generator:
     self.current_dict = generator_dict
@@ -74,12 +69,6 @@ class GeneratorLoader(object):
       validation_function=lambda x: str(x) if x and re.match(r"\w+", x) else None,
       default_value='entity'
     )
-    random_seed = self.validate(
-      name='random_seed',
-      validation_function=lambda x: x if random.seed(x) is None else None,
-      default_value=time.time_ns()
-    )
-    self.random_seed = random_seed
     quantity = self.validate(
       name='quantity',
       validation_function=int,
@@ -98,7 +87,6 @@ class GeneratorLoader(object):
 
     return Generator(
       generator_type=generator_type,
-      random_seed=random_seed,
       quantity=quantity,
       id_prefix=id_prefix,
       template=template

@@ -13,15 +13,16 @@ from typing import Any, Dict, Iterable, List
 
 
 class World(object):
-  def __init__(self, width: int = 100, height: int = 100) -> None:
+  def __init__(self, width: int = 100, height: int = 100, random_seed=None) -> None:
     self.log = logging.getLogger(self.__class__.__name__)
     self.TIME_RESOLUTION = 10.0
     self._height = width
-    self._width  = height
-    self.size    = Vector(width, height)
-    self.dt      = 0.000001
+    self._width = height
+    self.size = Vector(width, height)
+    self.dt = 0.000001
     self.entities_map: Dict[str, Entity] = {}
     self.systems: List[System] = []
+    self.random_seed = int(time()) if not random_seed else random_seed
 
   def update(self):
     update_start = time()
