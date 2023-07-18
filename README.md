@@ -11,3 +11,6 @@ Use a virtualenv, then `pip install -r requirements.txt`
 Then try loading a scenario from `world.yaml` and generate 200 frames, plotting it live: `python load.py world.yaml 200`
 
 Thats about it.
+
+## Commit Standard
+https://www.conventionalcommits.org/en/v1.0.0/
