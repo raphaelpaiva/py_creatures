@@ -27,6 +27,7 @@ logging.basicConfig(
   format='%(asctime)s [%(levelname)s] %(filename)s:%(name)s.%(funcName)s(): %(message)s'
 )
 
+
 class Application(object):
   def __init__(self, filename: str, mode: str = DEFAULT_MODE):
     super().__init__()
@@ -37,9 +38,9 @@ class Application(object):
 
     self.is_running = True
 
-  def load(self):
+  def load(self, random_seed=None):
     try:
-      frame = Loader(self.filename).load()
+      frame = Loader(self.filename, random_seed=random_seed).load()
       self.world: World = frame.world
       self.world.add_system(BrainSystem(self.world))
       self.world.add_system(SensorSystem())
@@ -74,7 +75,7 @@ class Application(object):
       self.world.update()
 
   def reset(self):
-    self.load()
+    self.load(random_seed=self.world.random_seed)
 
   def quit(self):
     self.is_running = False

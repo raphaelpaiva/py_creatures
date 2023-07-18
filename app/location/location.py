@@ -1,8 +1,8 @@
-import random
 from typing import Any, Callable, Dict, Union
-from core.component.component import MovementComponent
 from core.entity import Entity
 from core.primitives import Vector
+from core.random_generator import generator as random
+
 
 class Location(object):
   def __init__(self, location: Union[Callable, Vector, Entity], identifier: str = None) -> None:
@@ -30,6 +30,7 @@ class Location(object):
   def __str__(self) -> str:
     location_str = self.identifier if callable(self.target) else str(self.target)
     return str(location_str)
+
 
 class Somewhere(Location):
   def __init__(self, max_x: float = 100, max_y: float = 100) -> None:

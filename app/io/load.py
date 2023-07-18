@@ -1,4 +1,5 @@
 from typing import Any, Callable, Dict, List, Type
+import time
 import yaml
 import logging
 from app.brain.brain_component import BrainComponent
@@ -14,8 +15,9 @@ from app.sensor.sensor import RadialSensor, Sensor
 from app.sensor.sensor_component import SensorComponent
 from app.desire.desire_abstract import Desire, DesireComponent
 from core.world import Frame, World
+from core.random_generator import generator as random_gen
 
-from .generator import GeneratorLoader, Generator
+from .generator import GeneratorLoader
 
 
 class ParseException(Exception):
@@ -28,13 +30,14 @@ class ParseException(Exception):
 
 
 class Loader(object):
-  def __init__(self, filename) -> None:
+  def __init__(self, filename, random_seed=None) -> None:
     self.log = logging.getLogger(self.__class__.__name__)
     self.filename = filename
     self.loader_methods: Dict[str, Callable] = {f: getattr(Loader, f) for f in dir(Loader) if callable(getattr(Loader, f)) and "_load" in f}
     self.entity_by_id: Dict[str, Entity] = {}
     self.desire_by_entity_id: Dict[str, Desire] = {}
     self.world = None
+    self.random_seed = random_seed
 
   @staticmethod
   def _check_type(obj_dict: Dict | str, *classes: Type | str):
@@ -46,7 +49,7 @@ class Loader(object):
     raise ParseException(f"Type '{obj_type}' is not compatible with '{class_name}'")
 
   def _load_frame(self, frame_dict: Dict):   
-    number     = frame_dict.get('number', 0)
+    number = frame_dict.get('number', 0)
     world_dict = frame_dict.get('world', None)
 
     world = self._load_world(world_dict)
@@ -59,12 +62,16 @@ class Loader(object):
   def _load_world(self, world_dict: Dict[str, Any]) -> World:
     self._check_type(world_dict, World)
     
-    width  = world_dict.get('width', 100)
+    width = world_dict.get('width', 100)
     height = world_dict.get('height', 100)
+    world_random_seed = world_dict.get('random_seed', int(time.time()))
     generator_dicts_list: List[Dict[str, Any]] = world_dict.get('generators', [])
     entities = world_dict.get('entities', [])
 
-    world = World(width, height)
+    real_random_seed = self.random_seed if self.random_seed else world_random_seed
+    random_gen.seed(real_random_seed)
+
+    world = World(width, height, random_seed=world_random_seed)
 
     self.world = world
 
@@ -91,20 +98,20 @@ class Loader(object):
   def _load_entity(self, entity_dict: Dict) -> Entity:
     self._check_type(entity_dict, Entity, 'Resource', 'Creature')
 
-    entity_type   = entity_dict.get('type', Entity.__name__)
+    entity_type = entity_dict.get('type', Entity.__name__)
 
-    if (entity_type.lower() == Creature.__name__.lower()):
+    if entity_type.lower() == Creature.__name__.lower():
       return self._load_creature(entity_dict).entity
 
-    entity_id     = entity_dict.get("id")
+    entity_id = entity_dict.get("id")
     position_dict = entity_dict.get("position", 'Somewhere')
-    size          = entity_dict.get("size", 10)
+    size = entity_dict.get("size", 10)
     
     default_desire = {'type': 'Wander'} if entity_type == Entity.__name__ else {'type': 'StayStill'}
     
-    desire_dict     = entity_dict.get("desire", default_desire)
+    desire_dict = entity_dict.get("desire", default_desire)
     properties_dict = entity_dict.get('properties', {})
-    sensor_list     = entity_dict.get('sensors', [])
+    sensor_list = entity_dict.get('sensors', [])
 
     position = Somewhere(self.world.width, self.world.height).get() if position_dict == 'Somewhere' else self._load_vector(position_dict)
     entity = Entity(entity_id) 
