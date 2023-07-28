@@ -12,7 +12,8 @@ frame:
           position: Somewhere
           properties:
             name: random(ze,maria,ablinio,apolo,matraca,max,astolfo,rubens,alan,jessica,ana,mariana,astrogilda,joana,edmarta)
-            color: random(pink,magenta,grey,brown,blue,chocolate,darkslategrey)
+            #color: random(pink,magenta,grey,brown,blue,chocolate,darkslategrey)
+            color: random(#001B2E,#153447,#294C60,#6B8192,#ADB6C4,#D6D3CC,#FFEFD3,#FFC49B)
             speed: random(0.5,1.8)
             grab_radius: random(3.0,7)
             size: random(2,5)

@@ -6,13 +6,13 @@ from app.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DE
 
 class Style(object):
   def __init__(self,
-    size:             UISize       = DEFAULT_SIZE,
-    background_color: UIColor      = BACKGROUND_GREY,
-    border_width:     int          = BORDER_WIDTH,
-    border_color:     UIColor      = BLACK,
-    margin:           int          = BORDER_WIDTH,
-    hover_color:      UIColor      = WHITE,
-    font:             pg.font.Font = None
+    size:             UISize             = DEFAULT_SIZE,
+    background_color: UIColor | pg.Color = BACKGROUND_GREY,
+    border_width:     int                = BORDER_WIDTH,
+    border_color:     UIColor            = BLACK,
+    margin:           int                = BORDER_WIDTH,
+    hover_color:      UIColor            = WHITE,
+    font:             pg.font.Font       = None
   ) -> None:
     self.size               = size
     self.background_color   = background_color
