@@ -114,8 +114,13 @@ class WorldWidget(Widget):
 
       if self.hover is graphic or graphic.selected:
         graphic_color = WHITE
-      else: 
-        graphic_color = pg.colordict.THECOLORS.get(graphic.color) if isinstance(graphic.color, str) else graphic.color
+      else:
+        if isinstance(graphic.color, str):
+          graphic_color = pg.colordict.THECOLORS.get(graphic.color)
+          if not graphic_color:
+            graphic_color = pg.Color(graphic.color)
+        else:
+          graphic_color = graphic.color
 
       if graphic.shape == 'circle':
         gfx.filled_circle(
