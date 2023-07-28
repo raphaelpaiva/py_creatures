@@ -8,7 +8,7 @@ Not really much to see yet.
 
 Use a virtualenv, then `pip install -r requirements.txt`
 
-Then try loading a scenario from `world.yaml` and generate 200 frames, plotting it live: `python load.py world.yaml 200`
+Then try loading a scenario from `scenarios/` and generate 200 frames, plotting it live: `python main.py scenarios/generator_random.yml`
 
 Thats about it.
 
