@@ -15,16 +15,17 @@ from typing import Any, Dict, Iterable, List
 class World(object):
   def __init__(self, width: int = 100, height: int = 100, random_seed=None) -> None:
     self.log = logging.getLogger(self.__class__.__name__)
-    self.TIME_RESOLUTION = 10.0
+    self.time_resolution = 10.0
     self._height = width
     self._width = height
     self.size = Vector(width, height)
-    self.dt = 0.000001
+    self._dt = 0.000001
     self.entities_map: Dict[str, Entity] = {}
     self.systems: List[System] = []
     self.random_seed = int(time()) if not random_seed else random_seed
+    self._clock = 0.0
 
-  def update(self):
+  def update(self, external_dt: float = None):
     update_start = time()
     
     for system in self.systems:
@@ -35,7 +36,7 @@ class World(object):
       self.remove(entity)
     
     update_end = time()
-    self.dt = (update_end - update_start) * self.TIME_RESOLUTION
+    self.dt = external_dt if external_dt else (update_end - update_start)
   
   def add(self, entity: Entity) -> None:
     self.entities_map[entity.id] = entity
@@ -49,7 +50,7 @@ class World(object):
   def any_near(self, entity: Entity) -> Entity | None:
     for other_entity in self.entities():
       distance = entity.distance(other_entity)
-      if distance > 0 and distance <= entity.properties.get('sensor_radius', 7.0):
+      if 0 < distance <= entity.properties.get('sensor_radius', 7.0):
         return other_entity
     return None
 
@@ -64,6 +65,19 @@ class World(object):
   def height(self):
     return self._height
 
+  @property
+  def dt(self):
+    return self._dt
+
+  @dt.setter
+  def dt(self, new_dt):
+    self._dt = new_dt * self.time_resolution
+    self._clock += self._dt
+
+  @property
+  def clock(self):
+    return self._clock
+
   def __str__(self) -> str:
     return f"World({self.height}, {self.width}, {len(self.entities())})"
   
@@ -77,6 +91,7 @@ class World(object):
       "height": self.height,
       "entities": [a.to_dict() for a in self.entities()],
     }
+
 
 class Frame(object):
   _number = 0
@@ -98,6 +113,7 @@ class Frame(object):
         "world": self.world.to_dict()
       }
     }
+
 
 def frame_generator(keyframe: Frame) -> Iterable[Frame]:
   next_frame = keyframe

@@ -71,7 +71,8 @@ class Loader(object):
     real_random_seed = self.random_seed if self.random_seed else world_random_seed
     random_gen.seed(real_random_seed)
 
-    world = World(width, height, random_seed=world_random_seed)
+    self.log.info(f"Using random seed: {real_random_seed}")
+    world = World(width, height, random_seed=real_random_seed)
 
     self.world = world
 

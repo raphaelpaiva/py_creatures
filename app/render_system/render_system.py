@@ -45,7 +45,7 @@ class RenderSystem(System):
       self.world.width * scale_x,
       (self.world.height + 80) * scale_y
     )
-    world_widget_style = Style()
+    world_widget_style = Style(background_color=pg.Color('#C1E1C1'))
     world_widget_style.size = world_widget_size
 
     self.world_widget = WorldWidget(
@@ -119,6 +119,9 @@ class RenderSystem(System):
     element.z_position = len(self.ui_stack)
     self.ui_stack.append(element)
 
+  def quit(self):
+    pg.quit()
+
   def handle_events(self):
     for event in pg.event.get():
       e: pg.event.Event = event
@@ -134,8 +137,7 @@ class RenderSystem(System):
           self.top_hovering_widget.on_mouse_up()
       if e.type == pg.KEYUP:
         if e.key == pg.K_ESCAPE:
-          pg.quit()
-          sys.exit()
+          self.app.quit()
         if e.key == pg.K_r:
           self.app.reset()
         if e.key == pg.K_EQUALS:
@@ -143,5 +145,4 @@ class RenderSystem(System):
         if e.key == pg.K_MINUS:
           self.world_widget.scale /= 2
       if event.type == pg.QUIT:
-        pg.quit()
-        sys.exit()
+        self.app.quit()
