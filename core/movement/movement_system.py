@@ -7,9 +7,8 @@ from core.world import World
 
 class MovementSystem(System):
   def __init__(self, world: World) -> None:
-    super().__init__()
+    super().__init__(world)
     self.processing_list: List[Entity] = []
-    self.world: World = world
   
   def update(self, entities: List[Entity]):
     for entity in entities:

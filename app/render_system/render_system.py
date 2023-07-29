@@ -18,9 +18,8 @@ from .stats import Stats
 
 class RenderSystem(System):
   def __init__(self, world: World, app) -> None:
-    super().__init__()
+    super().__init__(world)
     self.top_hovering_widget = None
-    self.world = world
     self.stats = Stats()
     self.screen_size = Vector(SCREEN_WIDTH, SCREEN_HEIGHT)
     self.fps_limit = FPS_LIMIT

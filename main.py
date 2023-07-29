@@ -1,17 +1,10 @@
 import sys
 from time import time
-import traceback
 import logging
-
-from app.action import ActionSystem
-from app.brain.brain_system import BrainSystem
-from app.desire import DesireSystem
-from app.energy import EnergySystem
+from typing import Dict, Callable, Self
 
 from app.io import Loader, ParseException
-from core.movement import MovementSystem
 from app.render_system import RenderSystem
-from app.sensor.sensor_system import SensorSystem
 from core.world import World
 from app.creatures.creature import Creature
 
@@ -30,11 +23,17 @@ logging.basicConfig(
 
 
 class Application(object):
-  def __init__(self, filename: str, mode: str = DEFAULT_MODE):
+  BUILTIN_UIS: Dict[str | None, Callable[[World, Self], RenderSystem]] = {
+    'gui_pygame': lambda w, a: RenderSystem(w, a),
+    None: lambda w, a: None,
+  }
+
+  def __init__(self, filename: str, options: {}):
     super().__init__()
     self.log = logging.getLogger(Application.__name__)
+    self.options = options
     self.filename: str = filename
-    self.mode: str = mode
+    self.ui_type: str = 'gui_pygame' if not self.options.get('no_ui', False) else None
 
     self.world: World | None = None
 
@@ -46,14 +45,8 @@ class Application(object):
     try:
       frame = Loader(self.filename, random_seed=random_seed).load()
       self.world: World = frame.world
-      self.world.add_system(BrainSystem(self.world))
-      self.world.add_system(SensorSystem())
-      self.world.add_system(DesireSystem())
-      self.world.add_system(ActionSystem(self.world))
-      self.world.add_system(MovementSystem(self.world))
-      self.world.add_system(EnergySystem(self.world))
 
-      #self.ui = RenderSystem(self.world, self)  # Load ui here
+      self.ui = Application.BUILTIN_UIS[self.ui_type](self.world, self)
     except ParseException as e:
       print(e)
       exit(1)
@@ -76,7 +69,7 @@ class Application(object):
 
   def infinite_loop(self):
     start = time()
-    self.world.time_resolution = 18
+    self.world.time_resolution = 1
     dt = 0.000001
     while self.is_running:
       loop_start = time()
@@ -102,7 +95,7 @@ class Application(object):
 
   @property
   def is_benchmark(self) -> bool:
-    return self.mode is MODE_BENCHMARK
+    return self.options.get('is_benchmark', False)
 
 
 def main():
@@ -110,10 +103,14 @@ def main():
   filename = DEFAULT_FILENAME
   if len(sys.argv) > 1:
     filename = sys.argv[1]
-  is_benchmark = len(sys.argv) > 2 and sys.argv[2] == '-b'
-  
+
+  options = {
+    'is_benchmark': len(sys.argv) > 2 and '-b' in sys.argv,
+    'no_ui': len(sys.argv) > 2 and '--no-ui' in sys.argv
+  }
+
   try:
-    app = Application(filename, MODE_BENCHMARK if is_benchmark else DEFAULT_MODE)
+    app = Application(filename, options)
     app.load()
     app.run()
     sys.exit(0)

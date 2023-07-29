@@ -16,6 +16,12 @@ from app.sensor.sensor_component import SensorComponent
 from app.desire.desire_abstract import Desire, DesireComponent
 from core.world import Frame, World
 from core.random_generator import generator as random_gen
+from app.desire import DesireSystem
+from app.action import ActionSystem
+from app.brain import BrainSystem
+from app.energy import EnergySystem
+from app.sensor import SensorSystem
+from core.movement import MovementSystem
 
 from .generator import GeneratorLoader
 
@@ -30,6 +36,15 @@ class ParseException(Exception):
 
 
 class Loader(object):
+  BUILTIN_SYSTEMS = {
+    'brainsystem': BrainSystem,
+    'sensorsystem': SensorSystem,
+    'desiresystem': DesireSystem,
+    'actionsystem': ActionSystem,
+    'movementsystem': MovementSystem,
+    'energysystem': EnergySystem
+  }
+
   def __init__(self, filename, random_seed=None) -> None:
     self.log = logging.getLogger(self.__class__.__name__)
     self.filename = filename
@@ -75,6 +90,13 @@ class Loader(object):
     world = World(width, height, random_seed=real_random_seed)
 
     self.world = world
+
+    systems_dict = world_dict.get('systems')
+
+    if systems_dict:
+      self._load_systems(systems_dict)
+    else:
+      self._load_default_systems()
 
     generator_loader = GeneratorLoader()
     for generator_dict in generator_dicts_list:
@@ -252,10 +274,25 @@ class Loader(object):
     self.log.info(self.filename)
     content = self._load_yaml(self.filename)
     return self._load_frame(content['frame'])
-  
+
   def _load_yaml(self, filename: str) -> Dict[Any, Any]:
     with open(filename) as fd:
       return yaml.safe_load(fd)
 
   def _make_location_func(self, entity: Entity) -> Callable:
     return lambda: entity.movement.position
+
+  def _load_default_systems(self):
+    for system_type in Loader.BUILTIN_SYSTEMS.values():
+      self.world.add_system(system_type(self.world))
+
+  def _load_systems(self, systems_dict: Dict[str, Any] | List[str]):
+    for name in systems_dict:
+      system_name = name.lower()
+      if system_name in Loader.BUILTIN_SYSTEMS:
+        self.world.add_system(Loader.BUILTIN_SYSTEMS[system_name](self.world))
+      else:
+        self.log.warning(
+          f"System name '{system_name}' not found in Built in systems and will NOT be loaded."
+          f"Options are {list(Loader.BUILTIN_SYSTEMS.keys())}"
+        )

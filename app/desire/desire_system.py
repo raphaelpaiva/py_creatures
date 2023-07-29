@@ -4,9 +4,10 @@ from .desire_abstract import DesireComponent
 from core.entity import Entity
 from core.system import System
 
+
 class DesireSystem(System):
-  def __init__(self) -> None:
-    super().__init__()
+  def __init__(self, world) -> None:
+    super().__init__(world)
 
   def update(self, entities: List[Entity]):
     for entity in entities:

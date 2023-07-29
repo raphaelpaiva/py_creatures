@@ -16,7 +16,7 @@ from core.world import World
 
 class BrainSystem(System):
   def __init__(self, world: World) -> None:
-    super().__init__()
+    super().__init__(world)
     self.log = logging.getLogger(self.__class__.__name__)
     self.world = world
   

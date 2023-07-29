@@ -9,9 +9,8 @@ from core.world import World
 
 class EnergySystem(System):
   def __init__(self, world: World) -> None:
-    super().__init__()
+    super().__init__(world)
     self.log = logging.getLogger(EnergySystem.__name__)
-    self.world = world
   
   def update(self, entities: List[Entity]):
     for entity in entities:
