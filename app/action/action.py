@@ -4,8 +4,10 @@ from core.component.component import EnergyComponent
 from core.entity import Entity
 from core.primitives import Vector
 from core.system import System
+from core.world import World
 
-DEFAULT_MOVE_ACTION_ENERGY_COST: float = 0.01
+DEFAULT_MOVE_ACTION_ENERGY_COST: float = 1
+
 
 class Action(object):
   def __init__(self) -> None: pass
@@ -30,7 +32,7 @@ class Move(Action):
   
   @property
   def energy_cost(self):
-    return self._energy_cost * self.entity.properties.get('speed', 1.0)
+    return self._energy_cost * self.entity.movement.velocity.size()
   
   def to_dict(self) -> Dict[str, Any]:
     return {
@@ -69,8 +71,9 @@ class ActionComponent(Component):
 
 
 class ActionSystem(System):
-  def __init__(self) -> None:
+  def __init__(self, world: World) -> None:
     super().__init__()
+    self.world = world
   
   def update(self, entities: List[Entity]):
     for entity in entities:
@@ -81,7 +84,7 @@ class ActionSystem(System):
         if energy_component:
           if energy_component.current >= action_component.action.energy_cost:
             action_component.action.run()
-            energy_component.current -= action_component.action.energy_cost
+            energy_component.current -= action_component.action.energy_cost * self.world.dt
           else:
             action_component.action = None
         else:

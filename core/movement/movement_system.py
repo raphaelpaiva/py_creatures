@@ -4,6 +4,7 @@ from core.entity import Entity
 from core.system import System
 from core.world import World
 
+
 class MovementSystem(System):
   def __init__(self, world: World) -> None:
     super().__init__()

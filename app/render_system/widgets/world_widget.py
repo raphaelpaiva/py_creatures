@@ -47,7 +47,11 @@ class WorldWidget(Widget):
     self.selected_entity = None
 
   def get_graphics(self):
-      graphic_components: List[SimpleGraphicComponent] = [e.get_component(SimpleGraphicComponent) for e in sorted(self.world.entities(), key=lambda e: e.size, reverse=True)]
+      graphic_components: List[SimpleGraphicComponent] = [
+        e.get_component(SimpleGraphicComponent) for e in sorted(
+          self.world.entities(), key=lambda e: e.size, reverse=True
+        )
+      ]
       result: List[Graphic] = []
 
       for sgc in graphic_components:
