@@ -72,8 +72,7 @@ class ActionComponent(Component):
 
 class ActionSystem(System):
   def __init__(self, world: World) -> None:
-    super().__init__()
-    self.world = world
+    super().__init__(world)
   
   def update(self, entities: List[Entity]):
     for entity in entities:

@@ -5,8 +5,8 @@ from core.system import System
 
 
 class SensorSystem(System):
-  def __init__(self) -> None:
-    super().__init__()
+  def __init__(self, world) -> None:
+    super().__init__(world)
 
   def update(self, entities: List[Entity]):
     for entity in entities:
