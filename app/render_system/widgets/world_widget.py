@@ -1,3 +1,5 @@
+import logging
+from pathlib import Path
 from typing import List
 import pygame as pg
 import pygame.gfxdraw as gfx
@@ -11,6 +13,7 @@ from app.render_system.widgets.widget import Widget
 from core.world import World
 
 from app.render_system.mouse_handler import mouse
+
 
 class WorldWidget(Widget):
   def __init__(
@@ -28,9 +31,10 @@ class WorldWidget(Widget):
       position,
       style
     )
-    
+
+    self.log = logging.getLogger(self.__class__.__name__)
     self.world = world
-    self.scale = scale
+    self._scale = scale
     self.font = font
     self.bottom_layer = pg.Surface(size=self.surface.get_size())
     self.world_layer  = pg.Surface(size=self.surface.get_size())
@@ -126,7 +130,14 @@ class WorldWidget(Widget):
         else:
           graphic_color = graphic.color
 
-      if graphic.shape == 'circle':
+      if graphic.sprite:
+        if not graphic.converted:
+          graphic.original_sprite = graphic.original_sprite.convert_alpha()
+        self.surface.blit(
+          graphic.sprite,
+          (int(graphic_pos.x - graphic.sprite.get_width() / 2), int(graphic_pos.y - graphic.sprite.get_height() / 2))
+        )
+      elif graphic.shape == 'circle':
         gfx.filled_circle(
           self.surface,
           int(graphic_pos.x),
@@ -165,6 +176,14 @@ class WorldWidget(Widget):
           width=graphic.border_width
         )
 
+  def load_sprite(self, graphic: Graphic):
+    try:
+      graphic.sprite = pg.image.load(graphic.sprite).convert_alpha()
+      graphic.original_sprite = graphic.sprite
+    except Exception as e:
+      self.log.warning(f"Error loading sprite: {e}. Using default shape")
+      graphic.sprite = None
+
   def _render_bottom_layer(self):
     for graphic in self.graphics:
       if graphic.layer != BOTTOM_LAYER: continue
@@ -190,5 +209,17 @@ class WorldWidget(Widget):
           int(graphic_size),
           graphic.border_color
         )
+
+  @property
+  def scale(self):
+    return self._scale
+
+  @scale.setter
+  def scale(self, new_scale: float):
+    factor = new_scale / self._scale
+    self._scale = new_scale
+    for g in self.get_graphics():
+      if g.sprite and isinstance(g.sprite, pg.Surface):
+        g.sprite = pg.transform.scale(g.original_sprite, (g.sprite.get_width() * factor, g.sprite.get_height() * factor))
 
         

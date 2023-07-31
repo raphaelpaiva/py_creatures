@@ -8,7 +8,7 @@ class SensorComponent(Component):
   def __init__(self, sensors: List[Sensor]) -> None:
     super().__init__()
     self.detected: Set[Entity] = set()
-    self.sensors: Sensor = sensors if sensors else []
+    self.sensors: List[Sensor] = sensors if sensors else []
   
   def radial_sensors(self) -> List[RadialSensor]:
     return list(filter(lambda s: isinstance(s, RadialSensor), self.sensors))
