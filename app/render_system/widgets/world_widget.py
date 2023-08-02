@@ -62,7 +62,7 @@ class WorldWidget(Widget):
         result.extend(sgc.graphics)
 
       return result
-  
+
   def update(self):
     self.graphics = self.get_graphics()
     self._set_hover()
@@ -73,7 +73,7 @@ class WorldWidget(Widget):
   def on_hover(self):
     super().on_hover()
     self._set_hover()
-  
+
   def on_mouse_up(self):
     super().on_mouse_up()
     if self.hover:
@@ -84,30 +84,30 @@ class WorldWidget(Widget):
 
   def _set_hover(self):
     mouse_position = mouse.position - self.position
-    
+
     for graphic in self.graphics:
       graphic_size = graphic.size * self.scale - graphic.border_width
       graphic_pos = graphic.position * self.scale
       if ( (graphic_pos - mouse_position).size() <= graphic_size ):
         self.hover = graphic
         return
-    
+
     self.hover = None
 
   def _render_top_layer(self):
     for graphic in self.graphics:
       if graphic.layer != TOP_LAYER: continue
-      
+
       size = graphic.size * self.scale - graphic.border_width
       graphic_pos = graphic.position * self.scale
-      
+
       if graphic.text:
         text_offset = Vector(5 + size, -1 * size - 5)
         for text in graphic.text:
           text_offset = self._render_text(graphic_pos, text_offset, text)
 
   def _render_text(self, graphic_pos, text_offset, text):
-    rendered = self.font.render(text, True, NICE_COLOR)
+    rendered = self.font.render(text, True, WHITE)
     text_position = graphic_pos + text_offset
     self.surface.blit(rendered, text_position.as_tuple())
     text_offset += Vector(0, self.font.get_height())
@@ -116,7 +116,7 @@ class WorldWidget(Widget):
   def _render_middle_layer(self):
     for graphic in self.graphics:
       if graphic.layer != MIDDLE_LAYER: continue
-      
+
       graphic_size = graphic.size * self.scale
       graphic_pos = graphic.position * self.scale
 
@@ -187,7 +187,7 @@ class WorldWidget(Widget):
   def _render_bottom_layer(self):
     for graphic in self.graphics:
       if graphic.layer != BOTTOM_LAYER: continue
-      
+
       graphic_size = graphic.size * self.scale
       graphic_pos  = graphic.position * self.scale#  + self.position
 
@@ -201,7 +201,7 @@ class WorldWidget(Widget):
             int(graphic_size),
             graphic_color
           )
-        
+
         gfx.aacircle(
           self.surface,
           int(graphic_pos.x),
@@ -222,4 +222,4 @@ class WorldWidget(Widget):
       if g.sprite and isinstance(g.sprite, pg.Surface):
         g.sprite = pg.transform.scale(g.original_sprite, (g.sprite.get_width() * factor, g.sprite.get_height() * factor))
 
-        
+
