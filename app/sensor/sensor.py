@@ -8,6 +8,7 @@ from core.primitives import Vector
 class Sensor(object):
   def __init__(self) -> None:
     self.position = Vector(0,0)
+
   def scan(self, entities: List[Entity]) -> Set[Entity]: pass
 
 class RadialSensor(Sensor):

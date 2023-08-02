@@ -44,7 +44,7 @@ class RenderSystem(System):
       self.world.width * scale_x,
       (self.world.height + 80) * scale_y
     )
-    world_widget_style = Style(background_color=pg.Color('#C1E1C1'))
+    world_widget_style = Style(background_color=pg.Color('#8E484B'))
     world_widget_style.size = world_widget_size
 
     self.world_widget = WorldWidget(
@@ -57,9 +57,9 @@ class RenderSystem(System):
     )
     
     self.stats_widget = TextWidget(
-      self.screen, 'Framerate: 0000.0 fps\nplaceholder\nplaceholder\nplaceholder\nplaceholder',
+      self.screen, '-- Stats --\nFramerate: 0000.0 fps\nplaceholder\nplaceholder\nplaceholder\nplaceholder',
       position=Vector(self.world_widget.position.x + self.world_widget.style.size.width + WORLD_MARGIN, 0),
-      style=Style(font=self.font)
+      style=Style(font=self.font, background_color=pg.Color('#D4B483'))
     )
     self.entity_widget = EntityWidget(
       self.screen,
@@ -68,7 +68,7 @@ class RenderSystem(System):
         self.world_widget.position.x + self.world_widget.style.size.width + WORLD_MARGIN,
         WORLD_MARGIN + self.stats_widget.position.y + self.stats_widget.style.size.height
       ),
-      style=Style(font=self.font)
+      style=Style(font=self.font, background_color=pg.Color('#D4B483'))
     )
     self.add_ui_element(self.entity_widget)
     
@@ -81,9 +81,9 @@ class RenderSystem(System):
     self.ui_stack.sort(key=lambda w: w.z_position)
     self.mouse.update_position()
     self.handle_events()
-    self.screen.fill(WHITE)
+    self.screen.fill(pg.Color('#E4DFDA'))
     self.stats.frametime = self.clock.tick(self.fps_limit)
-    self.stats_widget.set_text(str(self.stats))
+    self.stats_widget.set_text(f"-- Stats --\n{self.stats}")
 
     self.top_hovering_widget = None
     for widget in self.ui_stack:
