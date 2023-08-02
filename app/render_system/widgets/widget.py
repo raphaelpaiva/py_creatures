@@ -8,7 +8,7 @@ from .style import Style
 from ..mouse_handler import mouse
 
 
-class Widget():
+class Widget(object):
   def __init__(self,
                parent: pg.Surface,
                position: Vector = ORIGIN,
@@ -63,6 +63,9 @@ class Widget():
       self.moving = True
 
   def on_hover(self):
+    pass
+
+  def on_mouse_wheel(self, wheel_vec: Vector):
     pass
 
   @classmethod

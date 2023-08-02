@@ -15,6 +15,10 @@ from core.world import World
 from app.render_system.mouse_handler import mouse
 
 
+MIN_SCALE = 1.0
+MAX_SCALE = 20.0
+
+
 class WorldWidget(Widget):
   def __init__(
     self,
@@ -32,20 +36,26 @@ class WorldWidget(Widget):
       style
     )
 
+    self.dragging = False
     self.log = logging.getLogger(self.__class__.__name__)
     self.world = world
     self._scale = scale
+    self.original_scale = self._scale
     self.font = font
     self.bottom_layer = pg.Surface(size=self.surface.get_size())
-    self.world_layer  = pg.Surface(size=self.surface.get_size())
-    self.top_layer    = pg.Surface(size=self.surface.get_size())
-    self.hover        = None
+    self.world_layer = pg.Surface(size=self.surface.get_size())
+    self.top_layer = pg.Surface(size=self.surface.get_size())
+    self.hover: Graphic | None = None
+
     self.layers = {
       'bottom': self.bottom_layer,
       'world': self.world_layer,
       'top': self.top_layer
     }
     self.graphics: List[Graphic] = self.get_graphics()
+
+    self.view_port_position: Vector = Vector(10, 0)
+
     self.movable = False
 
     self.selected_entity = None
@@ -64,6 +74,8 @@ class WorldWidget(Widget):
       return result
 
   def update(self):
+    if self.dragging:
+      self.view_port_position += mouse.relative_movement / self.scale
     self.graphics = self.get_graphics()
     self._set_hover()
     self._render_bottom_layer()
@@ -76,19 +88,29 @@ class WorldWidget(Widget):
 
   def on_mouse_up(self):
     super().on_mouse_up()
+    self.dragging = False
     if self.hover:
       self.selected_entity = self.hover.entity
       self.hover.toggle_selected()
     else:
       self.selected_entity = None
 
+  def on_mouse_down(self):
+    super().on_mouse_down()
+    if self.hovering:
+      self.dragging = True
+
+  def on_mouse_wheel(self, wheel_vec: Vector):
+    scale_step = wheel_vec.y / 10.0
+    self.scale += scale_step
+
   def _set_hover(self):
     mouse_position = mouse.position - self.position
 
     for graphic in self.graphics:
       graphic_size = graphic.size * self.scale - graphic.border_width
-      graphic_pos = graphic.position * self.scale
-      if ( (graphic_pos - mouse_position).size() <= graphic_size ):
+      graphic_pos = (self.view_port_position + graphic.position) * self.scale
+      if (graphic_pos - mouse_position).size() <= graphic_size:
         self.hover = graphic
         return
 
@@ -96,10 +118,11 @@ class WorldWidget(Widget):
 
   def _render_top_layer(self):
     for graphic in self.graphics:
-      if graphic.layer != TOP_LAYER: continue
+      if graphic.layer != TOP_LAYER:
+        continue
 
       size = graphic.size * self.scale - graphic.border_width
-      graphic_pos = graphic.position * self.scale
+      graphic_pos = (self.view_port_position + graphic.position) * self.scale
 
       if graphic.text:
         text_offset = Vector(5 + size, -1 * size - 5)
@@ -118,7 +141,7 @@ class WorldWidget(Widget):
       if graphic.layer != MIDDLE_LAYER: continue
 
       graphic_size = graphic.size * self.scale
-      graphic_pos = graphic.position * self.scale
+      graphic_pos = (self.view_port_position + graphic.position) * self.scale
 
       if self.hover is graphic or graphic.selected:
         graphic_color = WHITE
@@ -133,9 +156,11 @@ class WorldWidget(Widget):
       if graphic.sprite:
         if not graphic.converted:
           graphic.original_sprite = graphic.original_sprite.convert_alpha()
+        sprite_offset = Vector(graphic.sprite.get_width(), graphic.sprite.get_height()) / 2
+        sprite_position = graphic_pos - sprite_offset
         self.surface.blit(
           graphic.sprite,
-          (int(graphic_pos.x - graphic.sprite.get_width() / 2), int(graphic_pos.y - graphic.sprite.get_height() / 2))
+          sprite_position.as_tuple()
         )
       elif graphic.shape == 'circle':
         gfx.filled_circle(
@@ -176,20 +201,13 @@ class WorldWidget(Widget):
           width=graphic.border_width
         )
 
-  def load_sprite(self, graphic: Graphic):
-    try:
-      graphic.sprite = pg.image.load(graphic.sprite).convert_alpha()
-      graphic.original_sprite = graphic.sprite
-    except Exception as e:
-      self.log.warning(f"Error loading sprite: {e}. Using default shape")
-      graphic.sprite = None
-
   def _render_bottom_layer(self):
     for graphic in self.graphics:
-      if graphic.layer != BOTTOM_LAYER: continue
+      if graphic.layer != BOTTOM_LAYER:
+        continue
 
       graphic_size = graphic.size * self.scale
-      graphic_pos  = graphic.position * self.scale#  + self.position
+      graphic_pos = (self.view_port_position + graphic.position) * self.scale
 
       if graphic.shape == 'circle':
         if graphic.color != 'transparent':
@@ -210,16 +228,36 @@ class WorldWidget(Widget):
           graphic.border_color
         )
 
+  def load_sprite(self, graphic: Graphic):
+    try:
+      graphic.sprite = pg.image.load(graphic.sprite).convert_alpha()
+      graphic.original_sprite = graphic.sprite
+    except Exception as e:
+      self.log.warning(f"Error loading sprite: {e}. Using default shape")
+      graphic.sprite = None
+
   @property
   def scale(self):
     return self._scale
 
   @scale.setter
   def scale(self, new_scale: float):
-    factor = new_scale / self._scale
+    if new_scale <= MIN_SCALE:
+      self._scale = MIN_SCALE
+      new_scale = MIN_SCALE
+    elif new_scale >= MAX_SCALE:
+      self._scale = MAX_SCALE
+      new_scale = MAX_SCALE
+
     self._scale = new_scale
+    ratio = self._scale / self.original_scale
     for g in self.get_graphics():
       if g.sprite and isinstance(g.sprite, pg.Surface):
-        g.sprite = pg.transform.scale(g.original_sprite, (g.sprite.get_width() * factor, g.sprite.get_height() * factor))
-
-
+        aspect_ratio = g.original_sprite.get_height() / g.original_sprite.get_width() * 1.0
+        new_width = g.original_sprite.get_width() * ratio
+        new_height = new_width * aspect_ratio
+        size = (new_width, new_height)
+        g.sprite = pg.transform.scale(
+          g.original_sprite,
+          size
+        )
