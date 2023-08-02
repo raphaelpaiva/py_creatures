@@ -29,7 +29,7 @@ class RenderSystem(System):
     
     pg.init()
     self.screen = pg.display.set_mode(self.screen_size.as_tuple())
-    self.font = pg.font.SysFont('monospace', 18)
+    self.font = pg.font.SysFont('monospace', 15)
 
     self.clock = pg.time.Clock()
     self.stats.frametime = self.clock.tick(self.fps_limit)
@@ -44,7 +44,7 @@ class RenderSystem(System):
       self.world.width * scale_x,
       (self.world.height + 80) * scale_y
     )
-    world_widget_style = Style(background_color=pg.Color('#8E484B'))
+    world_widget_style = Style(background_color=pg.Color('#9d745d'))
     world_widget_style.size = world_widget_size
 
     self.world_widget = WorldWidget(
@@ -122,26 +122,29 @@ class RenderSystem(System):
     pg.quit()
 
   def handle_events(self):
-    for event in pg.event.get():
-      e: pg.event.Event = event
-      if e.type == pg.MOUSEBUTTONDOWN:
+    for e in pg.event.get():
+      event: pg.event.Event = e
+      if event.type == pg.MOUSEWHEEL:
+        if self.top_hovering_widget:
+          self.top_hovering_widget.on_mouse_wheel(Vector(event.precise_x, event.precise_y))
+      elif event.type == pg.MOUSEBUTTONDOWN:
         if self.top_hovering_widget:
           self.ui_stack.remove(self.top_hovering_widget)
           self.add_ui_element(self.top_hovering_widget)
           for i, ui_element in enumerate(self.ui_stack):
             ui_element.z_position = i
           self.top_hovering_widget.on_mouse_down()
-      if e.type == pg.MOUSEBUTTONUP:
+      if event.type == pg.MOUSEBUTTONUP:
         if self.top_hovering_widget:
           self.top_hovering_widget.on_mouse_up()
-      if e.type == pg.KEYUP:
-        if e.key == pg.K_ESCAPE:
+      if event.type == pg.KEYUP:
+        if event.key == pg.K_ESCAPE:
           self.app.quit()
-        if e.key == pg.K_r:
+        if event.key == pg.K_r:
           self.app.reset()
-        if e.key == pg.K_EQUALS:
+        if event.key == pg.K_EQUALS:
           self.world_widget.scale *= 2
-        if e.key == pg.K_MINUS:
+        if event.key == pg.K_MINUS:
           self.world_widget.scale /= 2
       if event.type == pg.QUIT:
         self.app.quit()
