@@ -1,8 +1,9 @@
 from typing import Dict
 from app.render_system.constants import FPS_LIMIT
+from core.util import Stats
 
 
-class Stats(object):
+class RenderStats(Stats):
   def __init__(self) -> None:
     self.fps_limit: int          = FPS_LIMIT
     self._frametime: float       = 0
@@ -11,7 +12,7 @@ class Stats(object):
     self.frametime_acc: float    = 0
     self.readings_counter: float = 0
   
-  def get_stats_dict(self) -> Dict[str, str]:
+  def get_dict(self) -> Dict[str, str]:
     framerate = int(self.framerate)
     framerate = f"{framerate}Hz" if framerate < 1000 else '+inf'
     return {
@@ -23,7 +24,7 @@ class Stats(object):
     }
   
   def __str__(self) -> str:
-    return '\n'.join([k + ' ' + v for k,v in self.get_stats_dict().items()]).strip()
+    return '\n'.join([k + ' ' + v for k,v in self.get_dict().items()]).strip()
 
   @property
   def frametime(self) -> float:
