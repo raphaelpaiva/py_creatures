@@ -14,12 +14,7 @@ MODE_BENCHMARK = 'benchmark'
 DEFAULT_FILENAME = 'scenarios/blue_creatures.yml'
 DEFAULT_FRAME_NUMBER = 'infinite'
 DEFAULT_MODE = MODE_SIMULATION
-BENCHMARK_FRAME_NUMBER = 1000
-
-logging.basicConfig(
-  level=logging.INFO,
-  format='%(asctime)s [%(levelname)s] %(filename)s:%(name)s.%(funcName)s(): %(message)s'
-)
+BENCHMARK_FRAME_NUMBER = 10000
 
 
 class Application(object):
@@ -45,8 +40,6 @@ class Application(object):
     try:
       frame = Loader(self.filename, random_seed=random_seed).load()
       self.world: World = frame.world
-
-      self.ui = Application.BUILTIN_UIS[self.ui_type](self.world, self)
     except ParseException as e:
       print(e)
       exit(1)
@@ -54,35 +47,45 @@ class Application(object):
   def run(self):
     if self.is_benchmark:
       self.benchmark_loop()
+      print()
+      print(self.world.stats.get_dict())
     else:
       self.infinite_loop()
 
   def benchmark_loop(self):
+    start = time()
     self.is_running = True
     print('Benchmarking...')
     for frame in range(BENCHMARK_FRAME_NUMBER):
       progress = 100 * frame / BENCHMARK_FRAME_NUMBER
-      print(progress)
-
+      if progress and progress % 10 == 0:
+        print('-', end='', flush=True)
       self.world.update()
     self.is_running = False
+    print()
+    print(f"{time() - start}s")
 
   def infinite_loop(self):
-    start = time()
-    self.world.time_resolution = 1
+    logging.basicConfig(
+      level=logging.INFO,
+      format='%(asctime)s [%(levelname)s] %(filename)s:%(name)s.%(funcName)s(): %(message)s'
+    )
+    start = time_ms()
+    self.ui = Application.BUILTIN_UIS[self.ui_type](self.world, self)
+    self.world.time_resolution = .01
     dt = 0.000001
     while self.is_running:
-      loop_start = time()
+      loop_start = time_ms()
       self.world.update(dt)
       if self.ui:
         self.ui.update(None)
 
       if not self.ui and not list(filter(lambda e: e.type == Creature.__name__, self.world.entities())):
         self.is_running = False
-      dt = time() - loop_start
-    end = time()
-    self.log.info(f"Simulation clock: {self.world.clock}s (time res: {self.world.time_resolution}) |"
-                  f" Wall clock: {end - start}s")
+      dt = time_ms() - loop_start
+    end = time_ms()
+    self.log.info(f"Simulation clock: {self.world.clock / 1000}s (time res: {self.world.time_resolution}) |"
+                  f" Wall clock: {(end - start) / 1000}s")
 
     if self.ui:
       self.ui.quit()
@@ -120,7 +123,7 @@ def main():
 
 
 def time_ms():
-    return time() / 1000.0
+    return time() * 1000.0
 
 
 if __name__ == '__main__':

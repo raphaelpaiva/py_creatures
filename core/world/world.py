@@ -17,7 +17,7 @@ from core.util import Stats
 class World(object):
   def __init__(self, width: int = 100, height: int = 100, random_seed=None) -> None:
     self.log = logging.getLogger(self.__class__.__name__)
-    self.time_resolution = 10.0
+    self.time_resolution = .001
     self._height = width
     self._width = height
     self.size = Vector(width, height)
@@ -29,10 +29,9 @@ class World(object):
     self.stats = WorldStats()
 
   def update(self, external_dt: float = None):
-    update_start = time()
+    update_start = time() * 1000
 
     self.stats.population = len(self.entities_map.keys())
-
     for system in self.systems:
       system.update(self.entities())
 
@@ -41,11 +40,15 @@ class World(object):
       self.remove(entity)
       self.stats.removed_count += 1
     
-    update_end = time()
+    update_end = time() * 1000
     internal_dt = (update_end - update_start)
     self.dt = external_dt if external_dt else internal_dt
-    self.stats.internal_dt = internal_dt
-    self.stats.external_dt = external_dt
+    if external_dt:
+      self.dt = external_dt
+      self.stats.external_dt = external_dt
+    else:
+      self.stats.internal_dt = internal_dt
+      self.dt = internal_dt
     self.stats.simulation_clock = self.clock
   
   def add(self, entity: Entity) -> None:
@@ -140,11 +143,11 @@ class WorldStats(Stats):
     return {
       'population': str(self.population),
       'removed_count': str(self.removed_count),
-      'avg_frame_rate': f"{self.avg_frame_rate / 1000:.1f}KHz",
-      'avg_frame_time': f"{self.avg_frame_time * 1000:.2f}us",
+      'avg_frame_rate': f"{self.avg_frame_rate:.1f}Hz",
+      'avg_frame_time': f"{self.avg_frame_time:.2f}ms",
       'simulation_clock': f"{self.simulation_clock:.2f}ms",
-      'internal_dt': f"{self.internal_dt * 1000:.2f}us",
-      'external_dt': f"{self.external_dt * 1000:.2f}us",
+      'internal_dt': f"{self.internal_dt:.2f}ms",
+      'external_dt': f"{self.external_dt:.2f}ms",
       'frame_count': f"{self.frame_count}",
     }
 
@@ -164,7 +167,9 @@ class WorldStats(Stats):
 
   @external_dt.setter
   def external_dt(self, new_dt):
-    self._external_dt = new_dt
+    self._external_dt = new_dt if new_dt else 0
+    self.frame_time_acc += self._external_dt
+    self.frame_count += 1
 
   @property
   def avg_frame_time(self) -> float:
@@ -175,4 +180,4 @@ class WorldStats(Stats):
 
   @property
   def avg_frame_rate(self) -> float:
-    return 1000 / (self.avg_frame_time + 0.0000001)
+    return 1000.0 / (self.avg_frame_time + 0.0000001)
