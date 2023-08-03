@@ -11,6 +11,8 @@ from copy import deepcopy
 
 from typing import Any, Dict, Iterable, List
 
+from core.util import Stats
+
 
 class World(object):
   def __init__(self, width: int = 100, height: int = 100, random_seed=None) -> None:
@@ -24,19 +26,27 @@ class World(object):
     self.systems: List[System] = []
     self.random_seed = int(time()) if not random_seed else random_seed
     self._clock = 0.0
+    self.stats = WorldStats()
 
   def update(self, external_dt: float = None):
     update_start = time()
-    
+
+    self.stats.population = len(self.entities_map.keys())
+
     for system in self.systems:
       system.update(self.entities())
 
     for entity in [a for a in self.entities() if a.remove]:
       self.log.info(f"Entity {entity.id} removed.")
       self.remove(entity)
+      self.stats.removed_count += 1
     
     update_end = time()
-    self.dt = external_dt if external_dt else (update_end - update_start)
+    internal_dt = (update_end - update_start)
+    self.dt = external_dt if external_dt else internal_dt
+    self.stats.internal_dt = internal_dt
+    self.stats.external_dt = external_dt
+    self.stats.simulation_clock = self.clock
   
   def add(self, entity: Entity) -> None:
     self.entities_map[entity.id] = entity
@@ -115,22 +125,54 @@ class Frame(object):
     }
 
 
-def frame_generator(keyframe: Frame) -> Iterable[Frame]:
-  next_frame = keyframe
-  while True:
-    yield next_frame
-    next_frame.world.update()
-    next_frame = Frame(deepcopy(next_frame.world))
+class WorldStats(Stats):
+  def __init__(self):
+    self.population: int = 0
+    self.removed_count: int = 0
+    self._internal_dt: float = 0.0
+    self._external_dt: float = 0.0
+    self.simulation_clock: float = 0.0
 
-def get_example_world() -> World:
-  ze     = Entity('Zé', Vector(90, 10))
-  maria  = Entity('Maria', Vector(40, 50))
-  food_1 = Entity('food_1', Vector(75, 90))
-  food_2 = Entity('food_2', Vector(10, 10))
+    self.frame_count: int = 0
+    self.frame_time_acc: float = 0
 
-  w = World()
-  w.add(ze)
-  w.add(maria)
-  w.add(food_1)
-  w.add(food_2)
-  return w
+  def get_dict(self) -> Dict[str, Any]:
+    return {
+      'population': str(self.population),
+      'removed_count': str(self.removed_count),
+      'avg_frame_rate': f"{self.avg_frame_rate / 1000:.1f}KHz",
+      'avg_frame_time': f"{self.avg_frame_time * 1000:.2f}us",
+      'simulation_clock': f"{self.simulation_clock:.2f}ms",
+      'internal_dt': f"{self.internal_dt * 1000:.2f}us",
+      'external_dt': f"{self.external_dt * 1000:.2f}us",
+      'frame_count': f"{self.frame_count}",
+    }
+
+  @property
+  def internal_dt(self):
+    return self._internal_dt
+
+  @internal_dt.setter
+  def internal_dt(self, new_dt):
+    self._internal_dt = new_dt
+    self.frame_time_acc += self._internal_dt
+    self.frame_count += 1
+
+  @property
+  def external_dt(self):
+    return self._external_dt
+
+  @external_dt.setter
+  def external_dt(self, new_dt):
+    self._external_dt = new_dt
+
+  @property
+  def avg_frame_time(self) -> float:
+    if self.frame_count == 0:
+      return 0.0
+    else:
+      return self.frame_time_acc / self.frame_count
+
+  @property
+  def avg_frame_rate(self) -> float:
+    return 1000 / (self.avg_frame_time + 0.0000001)

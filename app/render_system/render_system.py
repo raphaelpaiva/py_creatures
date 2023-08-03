@@ -6,21 +6,20 @@ import pygame.gfxdraw as gfx
 
 from core.entity import Entity
 from core.primitives import Vector
-from app.render_system.widgets import EntityWidget, WorldWidget, Widget, Style
-from app.render_system.widgets.text_widget import TextWidget
+from app.render_system.widgets import EntityWidget, StatsWidget, WorldWidget, Widget, Style
 from core.system import System
 from core.world import World
 from .constants import (FPS_LIMIT, GREEN, ORIGIN, SCREEN_HEIGHT, SCREEN_WIDTH, WHITE,
                         UISize, WORLD_MARGIN)
 from .mouse_handler import mouse
-from .stats import Stats
+from .renderstats import RenderStats
 
 
 class RenderSystem(System):
   def __init__(self, world: World, app) -> None:
     super().__init__(world)
     self.top_hovering_widget = None
-    self.stats = Stats()
+    self.stats = RenderStats()
     self.screen_size = Vector(SCREEN_WIDTH, SCREEN_HEIGHT)
     self.fps_limit = FPS_LIMIT
     self.ui_stack: List[Widget] = []
@@ -55,18 +54,32 @@ class RenderSystem(System):
       position=ORIGIN,
       style=world_widget_style,
     )
-    
-    self.stats_widget = TextWidget(
-      self.screen, '-- Stats --\nFramerate: 0000.0 fps\nplaceholder\nplaceholder\nplaceholder\nplaceholder',
+
+    self.world_stats = StatsWidget(
+      self.screen,
+      '-- World Stats --',
+      self.world.stats,
       position=Vector(self.world_widget.position.x + self.world_widget.style.size.width + WORLD_MARGIN, 0),
       style=Style(font=self.font, background_color=pg.Color('#D4B483'))
     )
+
+    self.stats_widget = StatsWidget(
+      self.screen,
+      '-- Render Stats --',
+      self.stats,
+      position=Vector(
+        self.world_widget.position.x + self.world_widget.style.size.width + WORLD_MARGIN,
+        WORLD_MARGIN + self.world_stats.style.margin + self.world_stats.position.y + self.world_stats.style.size.height
+      ),
+      style=Style(font=self.font, background_color=pg.Color('#D4B483'))
+    )
+
     self.entity_widget = EntityWidget(
       self.screen,
       None,
       position=Vector(
         self.world_widget.position.x + self.world_widget.style.size.width + WORLD_MARGIN,
-        WORLD_MARGIN + self.stats_widget.position.y + self.stats_widget.style.size.height
+        WORLD_MARGIN + self.stats_widget.style.margin + self.stats_widget.position.y + self.stats_widget.style.size.height
       ),
       style=Style(font=self.font, background_color=pg.Color('#D4B483'))
     )
@@ -74,6 +87,7 @@ class RenderSystem(System):
     
     self.add_ui_element(self.world_widget)
     self.add_ui_element(self.stats_widget)
+    self.add_ui_element(self.world_stats)
 
   def update(self, entities: List[Entity]):
     self.entity_widget.entity = self.world_widget.selected_entity
@@ -83,7 +97,6 @@ class RenderSystem(System):
     self.handle_events()
     self.screen.fill(pg.Color('#E4DFDA'))
     self.stats.frametime = self.clock.tick(self.fps_limit)
-    self.stats_widget.set_text(f"-- Stats --\n{self.stats}")
 
     self.top_hovering_widget = None
     for widget in self.ui_stack:
