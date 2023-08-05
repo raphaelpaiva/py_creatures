@@ -5,7 +5,6 @@ from app.desire import MoveTo, StayStill, Wander
 from app.desire.desire_abstract import Desire, DesireComponent
 from core.entity import Entity
 from core.primitives import Vector
-from app.render_system.graphics import SimpleGraphicComponent
 from app.sensor.sensor import RadialSensor, Sensor
 from app.sensor.sensor_component import SensorComponent
 from app.brain.reasoners.diet import HerbivoreDietReasoner, CarnivoreDietReasoner
@@ -28,7 +27,6 @@ class Creature(object):
     sensor:    Sensor                 = RadialSensor(50),
     desire:    Desire                 = StayStill(None),
     energy:    EnergyComponent        = EnergyComponent(),
-    graphics:  SimpleGraphicComponent = None,
     properties: Dict[str, Any]        = {}) -> None:
     self.entity            = Entity(id, entity_type=self.__class__.__name__)
     self.properties        = properties
@@ -54,9 +52,6 @@ class Creature(object):
     
     self.entity.add_component(self.brain)
     self.entity.add_component(self.energy)
-    
-    self.graphics = graphics if graphics else SimpleGraphicComponent(self.entity)
-    self.entity.add_component(self.graphics)
 
   def distance(self, entity: Entity) -> float:
     return self.entity.distance(entity)

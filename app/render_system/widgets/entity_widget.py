@@ -1,15 +1,13 @@
 import pygame as pg
 from typing import Dict
-from textwrap import dedent
 from core.component.component import EnergyComponent
 from core.entity import Entity
 from core.primitives import Vector
-from app.desire import DesireComponent, MoveTo
+from app.desire import DesireComponent
 from app.brain.brain_component import BrainComponent
 from app.render_system.constants import ORIGIN
-from .style import Style
+from app.render_system.style import Style
 from .text_widget import TextWidget
-import app
 
 
 class EntityWidget(TextWidget):

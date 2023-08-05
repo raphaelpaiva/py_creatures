@@ -8,7 +8,6 @@ from app.desire import Grab, MoveTo, StayStill, Wander
 from core.component.component import EnergyComponent, MetaDataComponent, MovementComponent
 
 from core.entity import Entity
-from app.render_system.graphics import SimpleGraphicComponent
 from app.location import Location, Somewhere
 from core.primitives import Vector
 from app.sensor.sensor import RadialSensor, Sensor
@@ -153,8 +152,6 @@ class Loader(object):
       entity.add_component(EnergyComponent())
     
     entity.desire = self._load_desire(desire_dict)
-
-    entity.add_component(SimpleGraphicComponent(entity))
 
     return entity
 

@@ -6,13 +6,14 @@ import pygame.gfxdraw as gfx
 
 from core.entity import Entity
 from core.primitives import Vector
-from app.render_system.widgets import EntityWidget, StatsWidget, WorldWidget, Widget, Style
+from app.render_system.widgets import EntityWidget, StatsWidget, WorldWidget, Widget
 from core.system import System
 from core.world import World
 from .constants import (FPS_LIMIT, GREEN, ORIGIN, SCREEN_HEIGHT, SCREEN_WIDTH, WHITE,
                         UISize, WORLD_MARGIN)
 from .mouse_handler import mouse
 from .renderstats import RenderStats
+from .style import Style
 
 
 class RenderSystem(System):

@@ -1,10 +1,11 @@
 from typing import List
 import pygame as pg
 from app.render_system.aux_types import UISize
-from app.render_system.constants import NICE_COLOR, ORIGIN
-from .style import Style
+from app.render_system.constants import ORIGIN
+from app.render_system.style import Style
 from .widget import Widget
 from core.primitives import Vector
+
 
 class TextWidget(Widget):
   def __init__(self, surface: pg.Surface, text: str, position: Vector = ORIGIN, style: Style = Style()) -> None:
