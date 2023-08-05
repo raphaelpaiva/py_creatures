@@ -3,7 +3,7 @@ import pygame as pg
 from core.primitives import Vector
 from app.render_system.aux_types import UISize
 from app.render_system.constants import (ORIGIN)
-from .style import Style
+from app.render_system.style import Style
 
 from ..mouse_handler import mouse
 

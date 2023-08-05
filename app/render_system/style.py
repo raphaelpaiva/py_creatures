@@ -1,19 +1,21 @@
 import pygame as pg
 
 from app.render_system.aux_types import UIColor, UISize
-from app.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, WHITE
+from app.render_system.constants import BACKGROUND_GREY, BLACK, BORDER_WIDTH, DEFAULT_SIZE, WHITE, ORIGIN
+from core.primitives import Vector
 
 
 class Style(object):
   def __init__(self,
-               size: UISize = DEFAULT_SIZE,
+               size: UISize | int | float = DEFAULT_SIZE,
                background_color: UIColor | pg.Color = pg.Color('#9D745D'),
                border_width: int = BORDER_WIDTH,
-               border_color: UIColor = pg.Color('#9D745D'),
+               border_color:  UIColor | pg.Color = pg.Color('#9D745D'),
                margin: int = BORDER_WIDTH,
-               hover_color: UIColor = pg.Color('#DCCAAF'),
+               hover_color: UIColor | pg.Color = pg.Color('#DCCAAF'),
                font: pg.font.Font = None,
-               color: UIColor | pg.Color = BLACK
+               color: UIColor | pg.Color = BLACK,
+               offset: Vector = ORIGIN
                ) -> None:
     self.size = size
     self.background_color = background_color
@@ -23,3 +25,4 @@ class Style(object):
     self.hover_color = hover_color
     self.font: pg.font.Font = font
     self.color = color
+    self.offset = offset

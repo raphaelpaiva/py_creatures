@@ -2,7 +2,7 @@ import pygame as pg
 from core.primitives import Vector
 from app.render_system.constants import ORIGIN
 from core.util import Stats
-from .style import Style
+from app.render_system.style import Style
 from .text_widget import TextWidget
 
 
