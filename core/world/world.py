@@ -13,11 +13,17 @@ from typing import Any, Dict, Iterable, List
 
 from core.util import Stats
 
+DEFAULT_TIME_RESOLUTION = .001
+
 
 class World(object):
-  def __init__(self, width: int = 100, height: int = 100, random_seed=None) -> None:
+  def __init__(self,
+               width: int = 100,
+               height: int = 100,
+               random_seed=None,
+               time_resolution: float = DEFAULT_TIME_RESOLUTION) -> None:
     self.log = logging.getLogger(self.__class__.__name__)
-    self.time_resolution = .001
+    self.time_resolution = time_resolution
     self._height = width
     self._width = height
     self.size = Vector(width, height)
@@ -50,6 +56,7 @@ class World(object):
       self.stats.internal_dt = internal_dt
       self.dt = internal_dt
     self.stats.simulation_clock = self.clock
+    self.stats.time_resolution = self.time_resolution
   
   def add(self, entity: Entity) -> None:
     self.entities_map[entity.id] = entity
@@ -138,6 +145,7 @@ class WorldStats(Stats):
 
     self.frame_count: int = 0
     self.frame_time_acc: float = 0
+    self.time_resolution: float = 0.0
 
   def get_dict(self) -> Dict[str, Any]:
     return {
@@ -149,6 +157,7 @@ class WorldStats(Stats):
       'internal_dt': f"{self.internal_dt:.2f}ms",
       'external_dt': f"{self.external_dt:.2f}ms",
       'frame_count': f"{self.frame_count}",
+      'time_resolution': f"{self.time_resolution}",
     }
 
   @property

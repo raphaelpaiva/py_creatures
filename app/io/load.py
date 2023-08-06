@@ -13,7 +13,7 @@ from core.primitives import Vector
 from app.sensor.sensor import RadialSensor, Sensor
 from app.sensor.sensor_component import SensorComponent
 from app.desire.desire_abstract import Desire, DesireComponent
-from core.world import Frame, World
+from core.world import Frame, World, DEFAULT_TIME_RESOLUTION
 from core.random_generator import generator as random_gen
 from app.desire import DesireSystem
 from app.action import ActionSystem
@@ -79,6 +79,7 @@ class Loader(object):
     width = world_dict.get('width', 100)
     height = world_dict.get('height', 100)
     world_random_seed = world_dict.get('random_seed', int(time.time()))
+    time_resolution = world_dict.get('time_resolution', DEFAULT_TIME_RESOLUTION)
     generator_dicts_list: List[Dict[str, Any]] = world_dict.get('generators', [])
     entities = world_dict.get('entities', [])
 
@@ -86,7 +87,7 @@ class Loader(object):
     random_gen.seed(real_random_seed)
 
     self.log.info(f"Using random seed: {real_random_seed}")
-    world = World(width, height, random_seed=real_random_seed)
+    world = World(width, height, random_seed=real_random_seed, time_resolution=time_resolution)
 
     self.world = world
 
