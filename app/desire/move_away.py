@@ -6,16 +6,20 @@ from app.action import ActionComponent, Move
 from .desire_abstract import Desire
 
 
-
 class MoveAway(Desire):
   def __init__(self, entity: Entity, from_entities: Entity | Iterable[Entity]):
     super().__init__(entity)
     self.from_entities = [from_entities] if isinstance(from_entities, Entity) else from_entities
 
   def run(self, world=None) -> None:
+    sensor_component: SensorComponent = self.entity.get_component(SensorComponent)
+    if sensor_component:
+      self.from_entities = sensor_component.detected.intersection(self.from_entities)
+
     direction = Vector(0,0)
     for other in self.from_entities:
-      direction = (direction + Vector.from_points(other.movement.position, self.entity.movement.position)).unit()
+      direction_to_other = Vector.from_points(self.entity.movement.position, other.movement.position).unit()
+      direction = direction.unit() + direction_to_other * -1
 
     action_component = self.entity.get_component(ActionComponent)
     if not action_component:
