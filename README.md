@@ -53,7 +53,6 @@ frame: # Required.
           properties:
             size: random(1,3)
             color: random(green,yellow,gold)
-
 ```
 
 # Development
