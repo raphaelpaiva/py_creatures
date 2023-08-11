@@ -15,3 +15,10 @@ jobs:
         uses: ts-graphviz/setup-graphviz@v1
       - name: Build docs
         run: sh docs.sh
+      - name: Archive Documentation site
+        uses: actions/upload-artifact@v3
+        with:
+          name: doc-site
+          path: |
+            site/
+            docs/diagrams
