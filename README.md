@@ -10,7 +10,7 @@ Use a virtualenv, then `pip install -r requirements.txt`
 
 Then try loading a scenario from `scenarios/`: `python main.py scenarios/generator_random.yml`
 
-Thats about it.
+That's about it.
 
 # Defining scenarios
 
