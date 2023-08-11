@@ -1,2 +1,6 @@
 pylint
 pyprof2calltree
+mkdocs-gen-files
+mkdocs
+mkdocstrings[python]
+mkdocs-material
