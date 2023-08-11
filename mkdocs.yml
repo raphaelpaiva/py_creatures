@@ -1,7 +1,7 @@
 site_name: Os Cria
 
 theme:
-  name: readthedocs
+  name: material
 
 plugins:
   - search

@@ -3,6 +3,8 @@ __pycache__/
 venv/
 .venv/
 sprites/
+site/
+docs/diagrams
 .DS_Store
 *.prof
 *.calltree

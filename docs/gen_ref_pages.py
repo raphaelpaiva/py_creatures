@@ -4,7 +4,7 @@ from pathlib import Path
 
 import mkdocs_gen_files
 
-for path in sorted(Path("core").rglob("*.py")):  #
+for path in sorted(Path("creatures").rglob("*.py")):  #
     module_path = path.relative_to(".").with_suffix("")  #
     doc_path = path.relative_to(".").with_suffix(".md")  #
     full_doc_path = Path("reference", doc_path)  #
