@@ -1,1 +1,1 @@
-from .world import World, Frame
+from .world import World, Frame, DEFAULT_TIME_RESOLUTION

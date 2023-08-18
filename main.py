@@ -72,7 +72,6 @@ class Application(object):
     )
     start = time_ms()
     self.ui = Application.BUILTIN_UIS[self.ui_type](self.world, self)
-    self.world.time_resolution = .01
     dt = 0.000001
     while self.is_running:
       loop_start = time_ms()

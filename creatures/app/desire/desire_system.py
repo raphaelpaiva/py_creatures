@@ -11,5 +11,5 @@ class DesireSystem(System):
 
   def update(self, entities: List[Entity]):
     for entity in entities:
-      component = entity.get_component(DesireComponent.__name__)
+      component: DesireComponent = entity.get_component(DesireComponent)
       component.desire.run()
