@@ -1,0 +1,24 @@
+name: build docs
+on: [push]
+
+jobs:
+  build_docs:
+    name: build docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      - name: Install graphviz
+        uses: ts-graphviz/setup-graphviz@v1
+      - name: Build docs
+        run: sh docs.sh
+      - name: Archive Documentation site
+        uses: actions/upload-artifact@v3
+        with:
+          name: doc-site
+          path: |
+            site/
+            docs/diagrams

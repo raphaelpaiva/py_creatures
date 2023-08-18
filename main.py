@@ -3,10 +3,10 @@ from time import time
 import logging
 from typing import Dict, Callable, Self
 
-from app.io import Loader, ParseException
-from app.render_system import RenderSystem
-from core.world import World
-from app.creatures.creature import Creature
+from creatures.app.io import Loader, ParseException
+from creatures.app.render_system import RenderSystem
+from creatures.core.world import World
+from creatures.app.creatures.creature import Creature
 
 MODE_SIMULATION = 'simulation'
 MODE_BENCHMARK = 'benchmark'
