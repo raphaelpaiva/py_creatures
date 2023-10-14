@@ -3,16 +3,16 @@ frame:
   world:
     width:  100
     height: 100
-    #random_seed: 12345
+    random_seed: 12345
+    time_resolution: 0.01
     generators:
       - type: creature
-        quantity: 5
+        quantity: 10
         id_prefix: creature_
         template:
           position: Somewhere
           properties:
-            name: random(ze,maria,ablinio,apolo,matraca,max,astolfo,rubens,alan,jessica,rapha,vz,igor,ana,mariana,astrogilda,joana,edmarta)
-            #color: random(pink,magenta,grey,brown,blue,chocolate,darkslategrey)
+            name: random(rapha,igor,jessica,vz,di)
             color: random(#001B2E,#153447,#294C60,#6B8192,#ADB6C4,#D6D3CC,#FFEFD3,#FFC49B)
             speed: random(0.5,1.8)
             grab_radius: random(3.0,7)
@@ -29,3 +29,4 @@ frame:
           properties:
             size: random(1,3)
             color: random(green,yellow,gold)
+            sprite: resource.png
