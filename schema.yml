@@ -1,0 +1,96 @@
+---
+Vector:
+  type: object
+  summary: A Vector to represent spatial properties, such as position, speed, velocity.
+  doc: This is a two-dimentional vector. Future implementations may add more dimensions.
+  fields:
+    - name: x
+      type: float
+      summary: The x coordinate of the Vector.
+      doc: null
+      required: yes
+    - name: "y"
+      type: float
+      summary: The y coordinate of the Vector.
+      doc: null
+      required: yes
+Frame:
+  type: object
+  summary: A frame for holding a world state for persistence.
+  doc: The main purpose of this is for frame-by-frame persistence. At least onw frame is required for defining a initial state for the simulation
+  fields:
+    - name: number
+      type: int
+      required: no
+      summary: The number of the frame in a frame sequence.
+      doc: |
+        This is not required if the frame only serve as a way to describe the initial state of the simulation.
+        This will mostly be used as a way to persist simulations frame by frame.
+    - name: world
+      type: World
+      required: yes
+      summary: The state of the simulation in this frame.
+      doc: null
+World:
+  type: object
+  summary: The simulation state. The world is basically a collection of entities and systems. The world updates are performed with a given delta time.
+  doc: |
+    This is the simulation state, or the collective state of all entities, components and systems in the simulation.
+    The world object is the interface for the user to input and output data from the simulation, as well as to update the simulation state.
+    Time in the world is universally measured in milliseconds
+    Updates are dependent of a delta time passed in each update call or the default one for the simulation which is the number of milliseconds it took to update the last state.
+  fields:
+    - name: height
+      type: int
+      required: no
+      default: 100
+      summary: The world height in arbitrary unit of measure.
+      doc: This is in no particular unit of measure.
+    - name: width
+      type: int
+      required: no
+      default: 100
+      summary: The world height in arbitrary unit of measure.
+      doc: This is in no particular unit of measure.
+    - name: time_resolution
+      type: float
+      required: no
+      summary: A value to multiply the delta_time value by. This accelerates or slows down time in the simulation. Defaults to the time taken to process the last update.
+      doc:
+    - name: entities
+      type:
+        name: list
+        of: Entity
+      required: no
+      summary: The list of entities that composes this world's state.
+      doc:
+    - name: systems
+      type:
+        name: list
+        of: System
+      required: no
+      summary: The list of systems that updates entities states.
+      doc: null
+Entity:
+  type: object
+  summary: ''
+  doc: ''
+  fields:
+    - name: id
+      type: string
+      required: yes
+      summary: The unique identifier for this entity.
+      doc: |
+        This id must be unique.
+    - name: position
+      type: Vector
+      required: yes
+      summary: The position of the entity within the simulation world.
+      doc: null
+    - name: properties
+      type: dict
+      required: no
+      default: {}
+      summary: entity's general properties
+      doc: |
+        A dictionary (key: value pairs) of general properties for this entity. Those may be used in Systems or not.
